@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>zstream-parent</artifactId>
+        <groupId>com.ztesoft.zstream</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>zstream-manager</artifactId>
+    <packaging>war</packaging>
+    <name>zstream-manager</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <org.spring.version>3.2.4.RELEASE</org.spring.version>
+        <!--<org.spring.version>4.3.12.RELEASE</org.spring.version>-->
+        <target.java.dir>src/main/java</target.java.dir>
+        <target.xml.dir>src/main/resources</target.xml.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jdk.version>1.8</jdk.version>
+    </properties>
+
+    <dependencies>
+    </dependencies>
+    <build>
+        <finalName>zstream-manager</finalName>
+    </build>
+</project>
