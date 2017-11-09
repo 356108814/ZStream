@@ -7,5 +7,7 @@ package com.ztesoft.zstream
   * @create 2017-11-8 16:41
   */
 class ColumnDef(id: Integer, name: String, cType: String) {
-
+  def this() {
+    this(0, "", "")
+  }
 }

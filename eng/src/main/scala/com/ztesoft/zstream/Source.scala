@@ -1,7 +1,5 @@
 package com.ztesoft.zstream
 
-import java.util.{Map => JMap, List => JList}
-
 /**
   * 数据源
   *
@@ -10,12 +8,7 @@ import java.util.{Map => JMap, List => JList}
   */
 trait Source[T] {
 
-  def init(params: Map[String, Any])
-
-  /**
-    * 获取列定义
-    */
-  def getDef: List[ColumnDef]
+  def init(sources: List[Map[String, Any]], params: Map[String, Any])
 
   /**
     * 数据转换，默认不处理
