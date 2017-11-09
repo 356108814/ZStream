@@ -26,13 +26,14 @@ class SparkStreamSource[DStream] extends Source[DStream] {
 
     val dstreams = sources.map(source => {
       val cfg = source.map(s => (s._1.toString, s._2.toString))
-      val format = cfg("format")
+      val sourceType = cfg("sourceType")
       val path = cfg.getOrElse("path", "")
       val colDef = cfg("colDef")
+      //改成格式，因为有分隔符和json这种
       val separator = cfg.getOrElse("separator", ",")
       val tableName = cfg("tableName")
 
-      val dstream = format match {
+      val dstream = sourceType match {
         case "socket" =>
           val host = cfg("host")
           val port = cfg("port").toInt
@@ -46,17 +47,34 @@ class SparkStreamSource[DStream] extends Source[DStream] {
         case "directory" =>
           ssc.textFileStream(path)
 
+        case "jdbc" =>
+          val url = cfg("url")
+          val db = cfg("db")
+          val table = cfg("table")
+          val username = cfg("username")
+          val password = cfg("password")
+          val jdbcDF = sparkSession.read
+            .format("jdbc")
+            .option("url", url)
+            .option("dbtable", s"$db.$table")
+            .option("user", username)
+            .option("password", password)
+            .load()
+          jdbcDF.createOrReplaceTempView(tableName)
+          null
+
         case "file" =>
           //com.databricks.spark.csv
-          //TODO 文件处理
-          val df = sparkSession.read.format("csv").options(
+          val format = cfg.getOrElse("format", "json") //默认json格式
+          val df = sparkSession.read.format(format).options(
             //删除指定属性，返回新的属性map
-            (cfg - "format" - "path" - "outputTable" - "data").map(f => (f._1.toString, f._2.toString))).load(path)
+            (cfg - "sourceType" - "format" - "path" - "colDef" - "separator" - "tableName")
+              .map(f => (f._1.toString, f._2.toString))).load(path)
           df.createOrReplaceTempView(tableName)
           null
 
         case _ =>
-          require(requirement = false, "不支持的数据源类型：" + format)
+          require(requirement = false, "不支持的数据源类型：" + sourceType)
           null
       }
       if(dstream != null) {

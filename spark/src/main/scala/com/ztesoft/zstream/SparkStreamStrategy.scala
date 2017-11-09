@@ -44,18 +44,31 @@ class SparkStreamStrategy(params: java.util.Map[String, String]) extends Default
     //    })
 
     val params = Map("sparkSession" -> sparkSession, "ssc" -> ssc)
-    val colDef = "[{\"id\": 1, \"name\": \"id\", \"type\": \"string\"}, {\"id\": 2, \"name\": \"name\", \"type\": \"string\"}]"
-    val sources = List(Map("format" -> "socket", "path" -> "", "tableName" -> "user", "colDef" -> colDef, "host" -> "10.45.47.66", "port" -> 9999))
+    val colDef1 = "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
+    val colDef2 = "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"age\", \"type\": \"int\"}]"
+    val s1 = Map("sourceType" -> "socket", "path" -> "", "tableName" -> "user", "colDef" -> colDef1, "host" -> "localhost", "port" -> 9999)
+    val s2 = Map("sourceType" -> "file", "path" -> "/Users/apple/debugData/user_rel.txt", "tableName" -> "user_rel", "colDef" -> colDef2, "format" -> "json")
+    val s3 = Map("sourceType" -> "socket", "path" -> "", "tableName" -> "user_rel", "colDef" -> colDef2, "host" -> "localhost", "port" -> 9998)
+
+    val sources = List(s1, s3)
     val sparkSteamSource = new SparkStreamSource()
     sparkSteamSource.init(sources, params)
     val result = sparkSteamSource.process()
-    val dStream = result.head.asInstanceOf[DStream[Row]]
+    val dStream = result.apply(1).asInstanceOf[DStream[Row]]
 
-    val ds = dStream.transform(rowRDD => {
-      val r = sparkSession.sql("select * from user where id > 6")
-      r.createOrReplaceTempView("adult")
-      rowRDD.toJavaRDD()
-    })
+//    val ds = dStream.transform(rowRDD => {
+//      val sql = "select u.id, u.name, rel.age from user u, user_rel rel where u.id = rel.id and rel.age > 3"
+//      val r = sparkSession.sql(sql)
+//      r.createOrReplaceTempView("adult")
+//      rowRDD.toJavaRDD()
+//    })
+
+        val ds = dStream.transform(rowRDD => {
+          val sql = "select * from user_rel where age > 3"
+          val r = sparkSession.sql(sql)
+          r.createOrReplaceTempView("adult")
+          rowRDD.toJavaRDD()
+        })
 
     ds.foreachRDD(rowRDD => {
       val adult = sparkSession.table("adult")
