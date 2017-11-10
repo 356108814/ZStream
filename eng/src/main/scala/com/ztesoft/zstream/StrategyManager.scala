@@ -12,7 +12,7 @@ class StrategyManager(jobConf: JobConf) {
     val className = "com.ztesoft.zstream.SparkStreamStrategy"
     Class.forName(className)
       .getDeclaredMethod("create", classOf[java.util.Map[String, String]])
-      .invoke(null, jobConf.jobParam.params).asInstanceOf[StreamStrategy]
+      .invoke(null, jobConf).asInstanceOf[StreamStrategy]
       .start()
   }
 }

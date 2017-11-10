@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util
 
-import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
@@ -50,21 +50,42 @@ object SparkUtil {
     for (i <- array.indices) {
       val v = array(i).toString
       val t = structFields.apply(i).dataType
-      val value = t match {
-        case ByteType => v.toByte
-        case ShortType => v.toShort
-        case IntegerType => v.toInt
-        case LongType => v.toLong
-        case FloatType => v.toFloat
-        case DoubleType => v.toDouble
-        case BooleanType => v.toBoolean
-        case DateType => new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(v)
-        case TimestampType => new Timestamp(java.lang.Long.parseLong(v))
-        case _ => v
-      }
-      values.add(value)
+      values.add(getValue(v, t))
     }
     Row.fromSeq(values.toArray)
+  }
+
+  /**
+    * json对象转spark Row
+    *
+    * @param json   json数据
+    * @param schema 表定义
+    * @return Row
+    */
+  def jsonObjectToRow(json: JSONObject, schema: StructType): Row = {
+    val values = new java.util.ArrayList[Any]()
+    val structFields = schema.toArray
+    for (field <- structFields) {
+      val v = json.getString(field.name)
+      val t = field.dataType
+      values.add(getValue(v, t))
+    }
+    Row.fromSeq(values.toArray)
+  }
+
+  def getValue(value: String, valueType: DataType) = {
+    valueType match {
+      case ByteType => value.toByte
+      case ShortType => value.toShort
+      case IntegerType => value.toInt
+      case LongType => value.toLong
+      case FloatType => value.toFloat
+      case DoubleType => value.toDouble
+      case BooleanType => value.toBoolean
+      case DateType => new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(value)
+      case TimestampType => new Timestamp(java.lang.Long.parseLong(value))
+      case _ => value
+    }
   }
 
   def main(args: Array[String]) {

@@ -11,7 +11,7 @@ object ScalaMain {
   def main(args: Array[String]) {
     val appName = "main"
     val master = "local[4]"
-    var filePath = "/Users/apple/debugData/user.txt"
+    var filePath = "J:/spark/source/user.txt"
 
     if(args.length != 0) {
       filePath = args(0)

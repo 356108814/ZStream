@@ -10,7 +10,7 @@ import org.apache.spark.api.java.function.VoidFunction;
  */
 public class JavaMain {
     public static void main(String[] args) {
-        String filePath = "/Users/apple/debugData/user.txt";
+        String filePath = "J:/spark/source/user.txt";
         if(args.length != 0) {
             filePath = args[0];
         }

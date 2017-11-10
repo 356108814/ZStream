@@ -1,5 +1,7 @@
 package com.ztesoft.zstream;
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * @author Yuri
  * @create 2017-11-9 11:26
