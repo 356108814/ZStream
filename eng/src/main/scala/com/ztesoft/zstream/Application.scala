@@ -4,7 +4,6 @@ package com.ztesoft.zstream
   * 应用主入口
   *
   * @author Yuri
-  * @create 2017-11-7 14:19
   */
 object Application {
   def main(args: Array[String]) {

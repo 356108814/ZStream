@@ -6,10 +6,9 @@ import scala.io.Source
 import com.ztesoft.zstream.ParamsName.ParamsName
 
 /**
-  * 参数工具类
+  * 作业参数
   *
   * @author Yuri
-  * @create 2017-11-7 14:53
   */
 class JobParam(args: Array[String]) {
   val params = scala.collection.mutable.Map[String, String]()
@@ -47,9 +46,9 @@ class JobParam(args: Array[String]) {
     * 作业配置验证
     */
   def validate() = {
-//    jobConf
-//    require(isSet(ParamsName.jobName), s"param ${ParamsName.jobName} must be set")
-//    require(isSet(ParamsName.engineType), s"param ${ParamsName.engineType} must be set")
+    //    jobConf
+    //    require(isSet(ParamsName.jobName), s"param ${ParamsName.jobName} must be set")
+    //    require(isSet(ParamsName.engineType), s"param ${ParamsName.engineType} must be set")
   }
 
   parse()

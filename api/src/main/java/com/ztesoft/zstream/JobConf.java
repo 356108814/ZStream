@@ -1,5 +1,6 @@
 package com.ztesoft.zstream;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -7,7 +8,6 @@ import java.util.Map;
  * 作业配置
  *
  * @author Yuri
- * @create 2017-11-10 17:05
  */
 public class JobConf {
     private String name;
@@ -54,6 +54,44 @@ public class JobConf {
 
     public void setParams(Map<String, Object> params) {
         this.params = params;
+    }
+
+    /**
+     * 获取数据源配置
+     *
+     * @return 数据源列表
+     */
+    public List<Map<String, Object>> getSourceProcessors() {
+        return getSourceProcessorsByType("source");
+    }
+
+    /**
+     * 获取转换计算配置
+     *
+     * @return 数据源列表
+     */
+    public List<Map<String, Object>> getTransformProcessors() {
+        return getSourceProcessorsByType("transform");
+    }
+
+    /**
+     * 获取动作配置
+     *
+     * @return 数据源列表
+     */
+    public List<Map<String, Object>> getActionProcessors() {
+        return getSourceProcessorsByType("action");
+    }
+
+
+    private List<Map<String, Object>> getSourceProcessorsByType(String type) {
+        List<Map<String, Object>> processors = new ArrayList<>();
+        for (Map<String, Object> p : this.processors) {
+            if (p.get("type").equals(type)) {
+                processors.add(p);
+            }
+        }
+        return processors;
     }
 
     @Override

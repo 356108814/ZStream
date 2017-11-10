@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap
   * 事件分配器
   *
   * @author Yuri
-  * @create 2017-11-7 13:32
   */
 trait Listener {
   def process(eventData: EventData)
@@ -33,7 +32,7 @@ object Dispatcher {
 
   def dispatch(eventName: String, eventData: EventData): Unit = {
     val listener = listeners.get(eventName)
-    if(listener == null) {
+    if (listener == null) {
       Logging.logWarning(s"$eventName not add listener")
       return
     }

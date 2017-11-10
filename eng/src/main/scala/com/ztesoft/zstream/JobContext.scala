@@ -8,7 +8,6 @@ import com.ztesoft.zstream.scheduler.JobScheduler
   * 作业唯一入口
   *
   * @author Yuri
-  * @create 2017-11-7 10:18
   */
 class JobContext(conf: JobConf) {
   val jobConf = conf

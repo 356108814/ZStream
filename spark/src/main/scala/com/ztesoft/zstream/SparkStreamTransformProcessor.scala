@@ -2,20 +2,20 @@ package com.ztesoft.zstream
 
 import org.apache.spark.sql.SparkSession
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
 /**
   * spark数据转换
   *
   * @author Yuri
-  * @create 2017-11-10 10:28
   */
 class SparkStreamTransformProcessor[T] extends TransformProcessor[T] {
 
-  private var confList: List[Map[String, Any]] = _
+  private var confList: java.util.List[java.util.Map[String, Object]] = _
   private var params: scala.collection.mutable.Map[String, Any] = _
 
-  override def init(confList: List[Map[String, Any]], params: scala.collection.mutable.Map[String, Any]): Unit = {
+  override def init(confList: java.util.List[java.util.Map[String, Object]], params: scala.collection.mutable.Map[String, Any]): Unit = {
     this.confList = confList
     this.params = params
   }
@@ -26,8 +26,8 @@ class SparkStreamTransformProcessor[T] extends TransformProcessor[T] {
     * @param input 输入数据
     * @return 处理后的结果集，键为输出表名
     */
-  override def process(input: List[(String, T)]): List[(String, T)] = {
-    val sparkSession = params.get("sparkSession").get.asInstanceOf[SparkSession]
+  override def process(input: java.util.List[T]): java.util.List[T] = {
+    val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
     confList.map(conf => {
       val cfg = conf.map(s => (s._1.toString, s._2.toString))
       val sql = cfg("sql")

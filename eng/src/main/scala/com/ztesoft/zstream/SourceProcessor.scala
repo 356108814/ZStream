@@ -4,7 +4,6 @@ package com.ztesoft.zstream
   * 数据源
   *
   * @author Yuri
-  * @create 2017-11-8 13:59
   */
 trait SourceProcessor[T] extends Processor[T] {
 
