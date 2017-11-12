@@ -12,11 +12,10 @@ import org.apache.spark.sql.types._
   * spark工具类
   *
   * @author Yuri
-  * @create 2017-11-9 11:11
   */
 object SparkUtil {
 
-  def createSchema(jsonColDef: String) = {
+  def createSchema(jsonColDef: String): StructType = {
     val structFields = new util.ArrayList[StructField]()
     val colDef = JSON.parseArray(jsonColDef)
     val typeMap = Map(
@@ -35,6 +34,22 @@ object SparkUtil {
       structFields.add(StructField(name, typeMap.getOrElse(cType, StringType), nullable = true))
     }
     StructType(structFields)
+  }
+
+  def createColumnDefList(jsonColDef: String): util.List[ColumnDef] = {
+    val defList = new util.ArrayList[ColumnDef]()
+    val colDef = JSON.parseArray(jsonColDef)
+
+    for (col <- colDef.toArray) {
+      val jo = col.asInstanceOf[com.alibaba.fastjson.JSONObject]
+      val name = jo.getString("name")
+      val cType = jo.getString("type")
+      val cd = new ColumnDef()
+      cd.setName(name)
+      cd.setType(cType)
+      defList.add(cd)
+    }
+    defList
   }
 
   /**
@@ -73,7 +88,7 @@ object SparkUtil {
     Row.fromSeq(values.toArray)
   }
 
-  def getValue(value: String, valueType: DataType) = {
+  def getValue(value: String, valueType: DataType): Any = {
     valueType match {
       case ByteType => value.toByte
       case ShortType => value.toShort
@@ -82,7 +97,7 @@ object SparkUtil {
       case FloatType => value.toFloat
       case DoubleType => value.toDouble
       case BooleanType => value.toBoolean
-      case DateType => new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(value)
+      case DateType => new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(value)
       case TimestampType => new Timestamp(java.lang.Long.parseLong(value))
       case _ => value
     }

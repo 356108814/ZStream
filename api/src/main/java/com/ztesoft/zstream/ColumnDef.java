@@ -1,23 +1,19 @@
 package com.ztesoft.zstream;
 
-import com.alibaba.fastjson.JSON;
-
 /**
+ * 列定义
+ *
  * @author Yuri
- * @create 2017-11-9 11:26
  */
-public class ColumnDefine {
-    private int id;
+public class ColumnDef {
+    /**
+     * 列名称
+     */
     private String name;
+    /**
+     * 列类型，支持byte、short、int、long、float、double、boolean、date、timestamp
+     */
     private String type;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -34,4 +30,5 @@ public class ColumnDefine {
     public void setType(String type) {
         this.type = type;
     }
+
 }

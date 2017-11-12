@@ -22,6 +22,7 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
     this.params = params
   }
 
+
   /**
     * 数据转换处理
     *
@@ -74,24 +75,28 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
         case "file" =>
           //com.databricks.spark.csv
           val format = cfg.getOrElse("format", "json") //默认json格式
-        val df = sparkSession.read.format(format).options(
-          //删除指定属性，返回新的属性map
-          (cfg - "subType" - "format" - "path" - "colDef" - "separator" - "tableName")
-            .map(f => (f._1.toString, f._2.toString))).load(path)
-          df.createOrReplaceTempView(tableName)
-          null
+          val df = sparkSession.read.format(format).options(
+            //删除指定属性，返回新的属性map
+            (cfg - "subType" - "format" - "path" - "colDef" - "separator" - "tableName")
+              .map(f => (f._1.toString, f._2.toString))).load(path)
+            df.createOrReplaceTempView(tableName)
+            null
 
         case _ =>
           require(requirement = false, "不支持的数据源类型：" + subType)
           null
       }
+
       if (dstream != null) {
+        //经etl后的dstream
+        val etlDStream = dstream.filter(line => SourceETL.filter(line, format, SparkUtil.createColumnDefList(colDef)))
+          .map(line => SourceETL.transform(line, format, SparkUtil.createColumnDefList(colDef)))
         val schema = SparkUtil.createSchema(colDef)
         val ds = format match {
           case "json" =>
-            dstream.map(a => SparkUtil.jsonObjectToRow(JSON.parseObject(a), schema))
+            etlDStream.map(line => SparkUtil.jsonObjectToRow(JSON.parseObject(line), schema))
           case _ =>
-            dstream.map(_.split(format)).map(a => SparkUtil.arrayToRow(a, schema))
+            etlDStream.map(_.split(format)).map(a => SparkUtil.arrayToRow(a, schema))
         }
 
         //数据源需要创建对应的表，这样后续就可以直接用了
@@ -106,7 +111,6 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
         (tableName, null)
       }
     })
-//    List(dstreams.filter(t => t._2 != null).asInstanceOf[List[(String, T)]])
     List(dstreams.filter(t => t._2 != null).asInstanceOf[T])
   }
 
