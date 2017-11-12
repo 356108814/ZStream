@@ -1,0 +1,33 @@
+{
+  "name": "firstJob",
+  "desc": "test",
+  "engineType": "spark",
+  "processors": [
+    {
+      "type": "source",
+      "subType": "socket",
+      "colDef": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
+      "format": ",",
+      "host": "localhost",
+      "port": "9999",
+      "tableName": "user",
+      "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select * from user where id > 5",
+      "format": ",",
+      "tableName": "adult"
+    },
+
+    {
+      "type": "action",
+      "subType": "console",
+      "inputTableName": "adult"
+    }
+  ],
+  "params": {}
+
+}

@@ -29,17 +29,25 @@ class SparkStreamActionProcessor[T] extends ActionProcessor[T] {
     */
   override def process(input: java.util.List[T]): java.util.List[T] = {
     val dstreams = input.get(0).asInstanceOf[ArrayBuffer[(String, DStream[Row])]]
+    val sourceTableName = dstreams.head._1
     val dstream = dstreams.head._2
     dstream.foreachRDD(rowRDD => {
       val createTableFuncList = params.getOrElse("_createTableFuncList", ArrayBuffer[() => Unit]()).asInstanceOf[ArrayBuffer[() => Unit]]
       createTableFuncList.foreach(func => func())
 
-      confList.foreach(source => {
+      confList.foreach(conf => {
         val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
-        val cfg = source.map(s => (s._1.toString, s._2.toString))
+        val cfg = conf.map(s => (s._1.toString, s._2.toString))
         val inputTableName = cfg("inputTableName")
+        val subType = cfg("subType")
         val df = sparkSession.table(inputTableName)
-        df.show()
+
+        subType match {
+          case "console" =>
+            df.show()
+          case _ =>
+            df.show()
+        }
       })
     })
     List()
