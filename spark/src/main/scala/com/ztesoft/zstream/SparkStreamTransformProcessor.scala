@@ -31,12 +31,12 @@ class SparkStreamTransformProcessor[T] extends TransformProcessor[T] {
     confList.map(conf => {
       val cfg = conf.map(s => (s._1.toString, s._2.toString))
       val sql = cfg("sql")
-      val tableName = cfg("tableName")
+      val outputTableName = cfg("outputTableName")
 
       //创建临时表
       val createTable = () => {
         val df = sparkSession.sql(sql)
-        df.createOrReplaceTempView(tableName)
+        df.createOrReplaceTempView(outputTableName)
       }
 
       //将所有创建临时表的函数缓存起来，统一在action中执行，这样所有表就可以共享了

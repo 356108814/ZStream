@@ -83,7 +83,6 @@ public class JobConf {
         return getSourceProcessorsByType("action");
     }
 
-
     private List<Map<String, Object>> getSourceProcessorsByType(String type) {
         List<Map<String, Object>> processors = new ArrayList<>();
         for (Map<String, Object> p : this.processors) {

@@ -8,24 +8,77 @@
       "subType": "socket",
       "colDef": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
       "format": ",",
-      "host": "localhost",
+      "host": "10.45.47.66",
       "port": "9999",
-      "tableName": "user",
+      "outputTableName": "user",
+      "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
+    },
+
+    {
+      "type": "source",
+      "subType": "socket",
+      "colDef": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"addr\", \"type\": \"string\"}]",
+      "format": ",",
+      "host": "10.45.47.66",
+      "port": "9998",
+      "outputTableName": "user_rel",
       "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
     },
 
     {
       "type": "transform",
       "subType": "sql",
-      "sql": "select * from user where id > 5",
+      "sql": "select * from user",
       "format": ",",
-      "tableName": "adult"
+      "inputTableName": "user",
+      "outputTableName": "test_user"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select * from test_user",
+      "format": ",",
+      "inputTableName": "test_user",
+      "outputTableName": "test_user2"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select * from test_user2 where id > 1",
+      "format": ",",
+      "inputTableName": "test_user2",
+      "outputTableName": "test_user3"
+    },
+
+    {
+      "type": "join",
+      "tableNames": "user,user_rel",
+      "joinType": "left",
+      "condition": "",
+      "outputTableName": ""
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select * from user_rel",
+      "format": ",",
+      "inputTableName": "user_rel",
+      "outputTableName": "adult"
     },
 
     {
       "type": "action",
       "subType": "console",
       "inputTableName": "adult"
+    },
+
+    {
+      "type": "action",
+      "subType": "console",
+      "inputTableName": "test_user3"
     }
   ],
   "params": {}

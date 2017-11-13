@@ -40,7 +40,7 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
       val colDef = cfg("colDef")
       //json或分隔符
       val format = cfg.getOrElse("format", ",")
-      val tableName = cfg("tableName")
+      val outputTableName = cfg("outputTableName")
 
       val dstream = subType match {
         case "socket" =>
@@ -69,7 +69,7 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
             .option("user", username)
             .option("password", password)
             .load()
-          jdbcDF.createOrReplaceTempView(tableName)
+          jdbcDF.createOrReplaceTempView(outputTableName)
           null
 
         case "file" =>
@@ -79,7 +79,7 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
             //删除指定属性，返回新的属性map
             (cfg - "subType" - "format" - "path" - "colDef" - "separator" - "tableName")
               .map(f => (f._1.toString, f._2.toString))).load(path)
-            df.createOrReplaceTempView(tableName)
+            df.createOrReplaceTempView(outputTableName)
             null
 
         case _ =>
@@ -103,13 +103,13 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
         //数据源需要创建对应的表，这样后续就可以直接用了
         val result = ds.transform(rowRDD => {
           val df = sparkSession.createDataFrame(rowRDD, SparkUtil.createSchema(colDef))
-          df.createOrReplaceTempView(tableName)
+          df.createOrReplaceTempView(outputTableName)
           rowRDD.toJavaRDD
         })
 
-        (tableName, result)
+        (outputTableName, result)
       } else {
-        (tableName, null)
+        (outputTableName, null)
       }
     })
     List(dstreams.filter(t => t._2 != null).asInstanceOf[T])

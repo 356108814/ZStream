@@ -8,6 +8,8 @@ import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
+import scala.collection.JavaConversions._
+
 /**
   * spark工具类
   *
@@ -101,6 +103,42 @@ object SparkUtil {
       case TimestampType => new Timestamp(java.lang.Long.parseLong(value))
       case _ => value
     }
+  }
+
+  /**
+    * 当前action处理器配置是否为数据源源表对应的action
+    *
+    * @param sourceTableName 数据源表
+    * @param conf            当前action processor配置
+    * @param confList        全部processor配置
+    * @return true符合条件
+    */
+  def isActionFromSource(sourceTableName: String, conf: java.util.Map[String, Object],
+                         confList: java.util.List[java.util.Map[String, Object]]): Boolean = {
+
+    def getPreConf(conf: java.util.Map[String, Object]): java.util.Map[String, Object] = {
+      val inputTableName = conf.getOrElse("inputTableName", "").toString
+      if (inputTableName.isEmpty) {
+        return null
+      }
+      for (c <- confList) {
+        val outputTableName = c.getOrElse("outputTableName", "")
+        if (outputTableName.equals(inputTableName)) {
+          return c
+        }
+      }
+      null
+    }
+
+    var preConf = getPreConf(conf)
+    while (preConf != null) {
+      if (preConf.getOrElse("inputTableName", "").toString.isEmpty && preConf.get("outputTableName").toString.equals(sourceTableName)) {
+        return true
+      } else {
+        preConf = getPreConf(preConf)
+      }
+    }
+    false
   }
 
   def main(args: Array[String]) {
