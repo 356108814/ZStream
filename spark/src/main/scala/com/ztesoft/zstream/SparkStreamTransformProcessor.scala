@@ -39,13 +39,12 @@ class SparkStreamTransformProcessor[T] extends TransformProcessor[T] {
         df.createOrReplaceTempView(outputTableName)
       }
 
-      //将所有创建临时表的函数缓存起来，统一在action中执行，这样所有表就可以共享了
+      //将所有创建临时表的函数缓存起来，统一在action中执行，这样在对应的dstream中就可以访问所有表了
       val createTableFuncList = params.getOrElse("_createTableFuncList", ArrayBuffer[() => Unit]()).asInstanceOf[ArrayBuffer[() => Unit]]
       createTableFuncList += createTable
       params.put("_createTableFuncList", createTableFuncList)
 
     })
-
     input
   }
 }
