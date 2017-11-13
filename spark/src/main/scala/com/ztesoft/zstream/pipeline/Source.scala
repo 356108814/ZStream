@@ -1,9 +1,10 @@
 package com.ztesoft.zstream.pipeline
 
 import com.alibaba.fastjson.JSON
-import com.ztesoft.zstream.{PipelineProcessor, SourceETL, SparkUtil}
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.streaming.StreamingContext
+import com.ztesoft.zstream.{SourceETL, SparkUtil}
+import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 
 import scala.collection.JavaConversions._
@@ -12,7 +13,7 @@ import scala.collection.JavaConversions._
   *
   * @author Yuri
   */
-class Source[T] extends PipelineProcessor[T] {
+class Source extends PipelineProcessor {
 
   /**
     * 数据转换处理
@@ -20,7 +21,7 @@ class Source[T] extends PipelineProcessor[T] {
     * @param input 输入数据
     * @return 处理后的结果集，键为输出表名
     */
-  override def process(input: Option[T]): Option[T] = {
+  override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
     val ssc = params("ssc").asInstanceOf[StreamingContext]
     val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
 
@@ -70,6 +71,6 @@ class Source[T] extends PipelineProcessor[T] {
       rowRDD.toJavaRDD
     })
 
-    Option(result.asInstanceOf[T])
+    Option(result)
   }
 }
