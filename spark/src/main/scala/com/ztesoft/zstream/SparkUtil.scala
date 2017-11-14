@@ -9,6 +9,7 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * spark工具类
@@ -105,6 +106,21 @@ object SparkUtil {
     }
   }
 
+  def getDefaultValue(valueType: DataType): Any = {
+    valueType match {
+      case ByteType => -1
+      case ShortType => -1
+      case IntegerType => -1
+      case LongType => -1
+      case FloatType => -1
+      case DoubleType => -1
+      case BooleanType => false
+      case DateType => new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("1970-01-01 08:00:00")
+      case TimestampType => new Timestamp(0)
+      case _ => ""
+    }
+  }
+
   /**
     * 当前action处理器配置是否为数据源源表对应的action
     *
@@ -140,6 +156,66 @@ object SparkUtil {
     }
     false
   }
+
+  /**
+    * 合并2行为1行
+    *
+    * @param row1        行1
+    * @param row2        行2
+    * @param schema1     表1定义
+    * @param schema2     表2定义
+    * @param queryColumn 需要查询的列列表，如果为空，则合并整个
+    * @return
+    */
+  def mergeRow(row1: Option[Row], row2: Option[Row], schema1: StructType, schema2: StructType, queryColumn: ArrayBuffer[(Int, String)]): Row = {
+    val values = new java.util.ArrayList[Any]()
+    if (queryColumn.isEmpty) {
+      //合并整个
+      if (row1.isDefined) {
+        for (v <- row1.get.toSeq) {
+          values.add(v)
+        }
+      } else {
+        for (s <- schema1) {
+          values.add(getDefaultValue(s.dataType))
+        }
+      }
+
+      if (row2.isDefined) {
+        for (v <- row2.get.toSeq) {
+          values.add(v)
+        }
+      } else {
+        for (s <- schema2) {
+          values.add(getDefaultValue(s.dataType))
+        }
+      }
+    }
+    else {
+      for (t <- queryColumn) {
+        val index = t._1
+        val name = t._2
+        if (index == 1) {
+          if (row1.isDefined) {
+            val row = row1.get
+            values.add(row.get(row.fieldIndex(name)))
+          } else {
+            values.add(getDefaultValue(schema1.get(schema1.fieldIndex(name)).dataType))
+          }
+        } else {
+          if (row2.isDefined) {
+            val row = row2.get
+            print()
+            values.add(row.get(row.fieldIndex(name)))
+          } else {
+            values.add(getDefaultValue(schema2.get(schema2.fieldIndex(name)).dataType))
+          }
+        }
+      }
+    }
+    Row.fromSeq(values.toArray)
+  }
+
 
   def main(args: Array[String]) {
     val data = Array("1", "yuri")

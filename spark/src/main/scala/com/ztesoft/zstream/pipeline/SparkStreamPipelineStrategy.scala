@@ -17,13 +17,15 @@ import scala.collection.JavaConversions._
   */
 class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
 
+  val processedMap = scala.collection.mutable.Map[java.util.Map[String, Object], Boolean]()
+
   override def start(): Unit = {
 
     println(jobConf)
     val params = jobConf.getParams
     val master = params.getOrElse("master", "local[4]").toString
     val appName = jobConf.getName
-    val duration = params.getOrElse("duration", "1").toString.toInt
+    val duration = params.getOrElse("duration", "5").toString.toInt
 
     val conf = new SparkConf().setMaster(master).setAppName(appName)
     val ssc = new StreamingContext(conf, Seconds(duration))
@@ -33,10 +35,12 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
       "jobConf" -> jobConf
     )
 
-    //数据源
+    //先处理数据源，缓存所有流
+    processSource(globalParams)
+    //再处理所有数据源的下一级
     val sourceProcessors = jobConf.getSourceProcessors
     for (sp <- sourceProcessors) {
-      processCurrent(sp, null, globalParams)
+      processNext(sp, null, globalParams)
     }
 
     ssc.start()
@@ -50,21 +54,44 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
       return null
     }
     for (c <- jobConf.getProcessors) {
-      val inputTableName = c.getOrElse("inputTableName", "")
-      if (inputTableName.equals(outputTableName)) {
+      val inputTableName = c.getOrElse("inputTableName", "").toString
+      if (inputTableName.contains(outputTableName)) {
         confs.add(c)
       }
     }
     confs
   }
 
+  /**
+    * 处理数据源
+    *
+    * @param globalParams 全局参数
+    */
+  def processSource(globalParams: scala.collection.mutable.Map[String, Any]): Unit = {
+    val sourceProcessors = jobConf.getSourceProcessors
+    for (sp <- sourceProcessors) {
+      val source = new Source()
+      source.init(sp, globalParams)
+      source.process(null)
+      processedMap.put(sp, true)
+    }
+  }
+
   def processCurrent(conf: java.util.Map[String, Object], input: DStream[Row], globalParams: scala.collection.mutable.Map[String, Any]): DStream[Row] = {
+    if (processedMap.contains(conf)) {
+      return null
+    }
     val pType = conf.get("type").toString
     val result = pType match {
       case "source" =>
         val source = new Source()
         source.init(conf, globalParams)
         source.process(null).get
+
+      case "join" =>
+        val join = new Join()
+        join.init(conf, globalParams)
+        join.process(null).get
 
       case "transform" =>
         val transform = new Transform()
@@ -77,6 +104,7 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
         action.process(Option(input))
         null
     }
+    processedMap.put(conf, true)
 
     processNext(conf, result, globalParams)
 
@@ -91,7 +119,6 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
         processCurrent(nextConf, input, globalParams)
       }
     }
-
   }
 
   override def stop(): Unit = {

@@ -71,6 +71,12 @@ class Source extends PipelineProcessor {
       df.toJavaRDD
     })
 
+    //缓存所有数据源对应的DStream
+    val sourceDStreams = params.getOrElse("_sourceDStreams", scala.collection.mutable.Map[String, DStream[Row]]())
+      .asInstanceOf[scala.collection.mutable.Map[String, DStream[Row]]]
+    sourceDStreams.put(outputTableName, result)
+    params.put("_sourceDStreams", sourceDStreams)
+
     Option(result)
   }
 }

@@ -1,0 +1,59 @@
+{
+  "name": "firstJob",
+  "desc": "test",
+  "engineType": "spark",
+  "processors": [
+    {
+      "type": "source",
+      "subType": "socket",
+      "format": ",",
+      "host": "10.45.47.66",
+      "port": "9999",
+      "outputTableName": "user",
+      "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
+    },
+
+    {
+      "type": "source",
+      "subType": "socket",
+      "format": ",",
+      "host": "10.45.47.66",
+      "port": "9998",
+      "outputTableName": "user_rel",
+      "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
+    },
+
+    {
+      "type": "join",
+      "joinType": "left",
+      "inputTableName": "user, user_rel",
+      "joinColumn": ["id", "id"],
+      "queryColumn": ["user.id", "user.name", "user_rel.addr"],
+      "outputTableName": "user_detail"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select id, addr from user_detail where id > 1",
+      "inputTableName": "user_detail",
+      "outputTableName": "result_user_detail"
+    },
+
+    {
+      "type": "action",
+      "subType": "console",
+      "inputTableName": "result_user_detail"
+    }
+  ],
+
+  "tableDef": {
+    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
+    "user_rel": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"addr\", \"type\": \"string\"}]",
+    "user_detail": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}, {\"name\": \"addr\", \"type\": \"string\"}]",
+    "result_user_detail": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"addr\", \"type\": \"string\"}]"
+  },
+
+  "params": {}
+
+}
