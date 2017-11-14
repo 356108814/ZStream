@@ -28,10 +28,10 @@ class Source extends PipelineProcessor {
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
     val path = cfg.getOrElse("path", "")
-    val colDef = cfg("colDef")
     //json或分隔符
     val format = cfg.getOrElse("format", ",")
     val outputTableName = cfg("outputTableName")
+    val colDef = jobConf.getTableDef.get(outputTableName)
 
     val dstream = subType match {
       case "socket" =>
@@ -68,7 +68,7 @@ class Source extends PipelineProcessor {
     val result = ds.transform(rowRDD => {
       val df = sparkSession.createDataFrame(rowRDD, SparkUtil.createSchema(colDef))
       df.createOrReplaceTempView(outputTableName)
-      rowRDD.toJavaRDD
+      df.toJavaRDD
     })
 
     Option(result)

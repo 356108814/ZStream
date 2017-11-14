@@ -1,5 +1,6 @@
 package com.ztesoft.zstream.pipeline
 
+import com.ztesoft.zstream.JobConf
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.sql.Row
 
@@ -11,6 +12,7 @@ import org.apache.spark.sql.Row
 trait PipelineProcessor {
   protected var conf: java.util.Map[String, Object] = _
   protected var params: scala.collection.mutable.Map[String, Any] = _
+  protected var jobConf: JobConf = _
 
   /**
     * 初始化
@@ -21,6 +23,7 @@ trait PipelineProcessor {
   def init(conf: java.util.Map[String, Object], params: scala.collection.mutable.Map[String, Any]): Unit = {
     this.conf = conf
     this.params = params
+    this.jobConf = params("jobConf").asInstanceOf[JobConf]
   }
 
   /**

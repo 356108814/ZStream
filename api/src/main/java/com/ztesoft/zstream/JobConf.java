@@ -15,6 +15,7 @@ public class JobConf {
     private String engineType;
     private List<Map<String, Object>> processors;
     private Map<String, Object> params;
+    private Map<String, String> tableDef;
 
     public String getName() {
         return name;
@@ -54,6 +55,14 @@ public class JobConf {
 
     public void setParams(Map<String, Object> params) {
         this.params = params;
+    }
+
+    public Map<String, String> getTableDef() {
+        return tableDef;
+    }
+
+    public void setTableDef(Map<String, String> tableDef) {
+        this.tableDef = tableDef;
     }
 
     /**

@@ -23,13 +23,15 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
     val params = jobConf.getParams
     val master = params.getOrElse("master", "local[4]").toString
     val appName = jobConf.getName
-    val duration = params.getOrElse("duration", "5").toString.toInt
+    val duration = params.getOrElse("duration", "1").toString.toInt
 
     val conf = new SparkConf().setMaster(master).setAppName(appName)
     val ssc = new StreamingContext(conf, Seconds(duration))
     val sparkSession = SparkSession.builder().config(conf).getOrCreate()
 
-    val globalParams = scala.collection.mutable.Map[String, Any]("sparkSession" -> sparkSession, "ssc" -> ssc)
+    val globalParams = scala.collection.mutable.Map[String, Any]("sparkSession" -> sparkSession, "ssc" -> ssc,
+      "jobConf" -> jobConf
+    )
 
     //数据源
     val sourceProcessors = jobConf.getSourceProcessors

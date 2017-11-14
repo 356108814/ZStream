@@ -66,6 +66,6 @@ public class DefaultSourceExtProcessor implements SourceExtProcessor {
     }
 
     private boolean isJson(String s) {
-        return s.equalsIgnoreCase("json");
+        return "json".equalsIgnoreCase(s);
     }
 }
