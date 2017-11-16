@@ -1,0 +1,40 @@
+{
+  "name": "firstJob",
+  "desc": "test",
+  "engineType": "spark",
+  "processors": [
+    {
+      "type": "source",
+      "subType": "socket",
+      "format": ",",
+      "host": "10.45.47.66",
+      "port": "9999",
+      "outputTableName": "user",
+      "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select name, count(name) as total from user group by name",
+      "acc": true,
+      "inputTableName": "user",
+      "outputTableName": "user_acc"
+    },
+
+    {
+      "type": "action",
+      "subType": "console",
+      "sql": "select * from user_acc order by total desc",
+      "inputTableName": "user_acc"
+    }
+  ],
+
+  "tableDef": {
+    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
+    "user_acc": "[{\"name\": \"name\", \"type\": \"string\"}, {\"name\": \"total\", \"type\": \"long\"}]"
+  },
+
+  "params": {}
+
+}

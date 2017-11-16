@@ -20,12 +20,19 @@ class Action extends PipelineProcessor {
   override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
     val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
     val dstream = input.get
-    dstream.foreachRDD(rowRDD => {
-      val cfg = conf.map(s => (s._1.toString, s._2.toString))
-      val subType = cfg("subType")
-      val inputTableName = cfg("inputTableName")
-      val df = sparkSession.table(inputTableName)
+    val cfg = conf.map(s => (s._1.toString, s._2.toString))
+    val subType = cfg("subType")
+    val inputTableName = cfg("inputTableName")
+    val sql = cfg("sql")
 
+    dstream.foreachRDD(rowRDD => {
+      val df = {
+        if (sql.isEmpty) {
+          sparkSession.table(inputTableName)
+        } else {
+          sparkSession.sql(sql)
+        }
+      }
       subType match {
         case "console" =>
           df.show()

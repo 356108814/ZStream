@@ -29,6 +29,7 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
 
     val conf = new SparkConf().setMaster(master).setAppName(appName)
     val ssc = new StreamingContext(conf, Seconds(duration))
+    ssc.checkpoint("J:\\spark\\checkpoint")
     val sparkSession = SparkSession.builder().config(conf).getOrCreate()
 
     val globalParams = scala.collection.mutable.Map[String, Any]("sparkSession" -> sparkSession, "ssc" -> ssc,
@@ -38,9 +39,11 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
     //先处理数据源，缓存所有流
     processSource(globalParams)
     //再处理所有数据源的下一级
+    val sourceDStreams = globalParams.getOrElse("_sourceDStreams", scala.collection.mutable.Map[String, DStream[Row]]())
+      .asInstanceOf[scala.collection.mutable.Map[String, DStream[Row]]]
     val sourceProcessors = jobConf.getSourceProcessors
     for (sp <- sourceProcessors) {
-      processNext(sp, null, globalParams)
+      processNext(sp, sourceDStreams(sp.get("outputTableName").toString), globalParams)
     }
 
     ssc.start()
@@ -54,7 +57,7 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
       return null
     }
     for (c <- jobConf.getProcessors) {
-      val inputTableName = c.getOrElse("inputTableName", "").toString
+      val inputTableName = c.getOrElse("inputTableName", "").toString.split(",").map(name => name.trim)
       if (inputTableName.contains(outputTableName)) {
         confs.add(c)
       }
