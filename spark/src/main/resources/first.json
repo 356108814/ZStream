@@ -17,26 +17,14 @@
       "type": "transform",
       "subType": "sql",
       "sql": "select name, count(name) as total from user group by name",
-      "acc": false,
+      "acc": true,
       "inputTableName": "user",
       "outputTableName": "user_acc"
     },
 
     {
       "type": "action",
-      "subType": "db",
-      "sql": "select * from user_acc order by total desc",
-      "inputTableName": "user_acc11",
-      "url": "jdbc:mysql://localhost:3306",
-      "username": "root",
-      "password": "root",
-      "dbtable": "test.user_count",
-      "append": true
-    },
-
-    {
-      "type": "action",
-      "subType": "hbase",
+      "subType": "console",
       "tableName": "test_acc",
       "family": "cf",
       "sql": "select * from user_acc order by total desc",
@@ -49,6 +37,10 @@
     "user_acc": "[{\"name\": \"name\", \"type\": \"string\"}, {\"name\": \"total\", \"type\": \"long\"}]"
   },
 
-  "params": {}
+  "params": {
+    "master": "local[4]",
+    "duration": 5,
+    "checkpoint": "/tmp/spark/checkpoint"
+  }
 
 }

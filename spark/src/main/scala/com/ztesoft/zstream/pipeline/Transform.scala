@@ -118,13 +118,19 @@ class Transform extends PipelineProcessor {
 
         //第一个字段为键，最后一个字段为累加值
         val stateDStream = sqlDStream.map(row => (row(0), row)).updateStateByKey[Row](accFunc)
-        stateDStream.map(t => t._2).transform(rowRDD => {
+        //checkpoint保存
+//        stateDStream.cache()
+//        stateDStream.checkpoint(Seconds(5))
+
+        val resultDStream = stateDStream.map(t => t._2).transform(rowRDD => {
           val colDef = jobConf.getTableDef.get(outputTableName)
           val schema = SparkUtil.createSchema(colDef)
           val df = sparkSession.createDataFrame(rowRDD, schema)
           df.createOrReplaceTempView(outputTableName)
           df.toJavaRDD
         })
+
+        resultDStream
 
       } else {
         sqlDStream

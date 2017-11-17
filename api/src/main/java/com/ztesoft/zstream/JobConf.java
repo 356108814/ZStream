@@ -111,6 +111,7 @@ public class JobConf implements Serializable {
                 ", engineType='" + engineType + '\'' +
                 ", processors=" + processors +
                 ", params=" + params +
+                ", tableDef=" + tableDef +
                 '}';
     }
 }

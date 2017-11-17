@@ -20,22 +20,12 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
 
   val processedMap = scala.collection.mutable.Map[java.util.Map[String, Object], Boolean]()
 
-  override def start(): Unit = {
-
-    println(jobConf)
-    val params = jobConf.getParams
-    val master = params.getOrElse("master", "local[4]").toString
-    val appName = jobConf.getName
+  def createSSC(): StreamingContext = {
+    val sparkConf = getSparkConf
     val duration = params.getOrElse("duration", "5").toString.toInt
+    val ssc = new StreamingContext(sparkConf, Seconds(duration))
 
-    KerberosUtil.loginCluster(true, true)
-
-    val conf = new SparkConf().setMaster(master).setAppName(appName)
-    val ssc = new StreamingContext(conf, Seconds(duration))
-//    ssc.checkpoint("J:\\spark\\checkpoint")
-    ssc.checkpoint("/tmp/checkpoint")
-    val sparkSession = SparkSession.builder().config(conf).getOrCreate()
-
+    val sparkSession = SparkSession.builder().config(sparkConf).getOrCreate()
     val globalParams = scala.collection.mutable.Map[String, Any]("sparkSession" -> sparkSession, "ssc" -> ssc,
       "jobConf" -> jobConf
     )
@@ -49,6 +39,45 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
     for (sp <- sourceProcessors) {
       processNext(sp, sourceDStreams(sp.get("outputTableName").toString), globalParams)
     }
+
+    ssc
+  }
+
+  def getSparkConf: SparkConf = {
+    val master = params.getOrElse("master", "local[4]").toString
+    val appName = jobConf.getName
+    val conf = new SparkConf().setMaster(master).setAppName(appName)
+    conf
+  }
+
+  override def start(): Unit = {
+    KerberosUtil.loginCluster(true, true)
+    val sparkConf = getSparkConf
+    val checkpoint = params.getOrDefault("checkpoint", "").toString
+    val ssc = {
+      if(checkpoint.isEmpty) {
+        createSSC()
+      } else {
+        val ssc = StreamingContext.getOrCreate(checkpoint, createSSC)
+        ssc.checkpoint(checkpoint)
+        ssc
+      }
+    }
+
+//    val sparkSession = SparkSession.builder().config(sparkConf).getOrCreate()
+//    val globalParams = scala.collection.mutable.Map[String, Any]("sparkSession" -> sparkSession, "ssc" -> ssc,
+//      "jobConf" -> jobConf
+//    )
+//
+//    //先处理数据源，缓存所有流
+//    processSource(globalParams)
+//    //再处理所有数据源的下一级
+//    val sourceDStreams = globalParams.getOrElse("_sourceDStreams", scala.collection.mutable.Map[String, DStream[Row]]())
+//      .asInstanceOf[scala.collection.mutable.Map[String, DStream[Row]]]
+//    val sourceProcessors = jobConf.getSourceProcessors
+//    for (sp <- sourceProcessors) {
+//      processNext(sp, sourceDStreams(sp.get("outputTableName").toString), globalParams)
+//    }
 
     ssc.start()
     ssc.awaitTermination()
@@ -131,6 +160,7 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
   override def stop(): Unit = {
 
   }
+
 }
 
 object SparkStreamPipelineStrategy {
@@ -142,6 +172,8 @@ object SparkStreamPipelineStrategy {
   }
 
   def create(jobConf: JobConf): SparkStreamPipelineStrategy = {
-    new SparkStreamPipelineStrategy(jobConf)
+    val strategy = new SparkStreamPipelineStrategy(jobConf)
+    strategy.init(jobConf)
+    strategy
   }
 }

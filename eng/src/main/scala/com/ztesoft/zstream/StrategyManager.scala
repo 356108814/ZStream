@@ -7,13 +7,14 @@ package com.ztesoft.zstream
   */
 class StrategyManager(jobConf: JobConf) {
   val strategyMap = Map(
-    "spark" -> "com.ztesoft.zstream.SparkStreamStrategy"
+    "spark" -> "com.ztesoft.zstream.pipeline.SparkStreamPipelineStrategy"
   )
 
   def start() = {
-    val className = strategyMap.getOrElse(jobConf.getEngineType, "spark")
+    val engineType = if(jobConf.getEngineType.nonEmpty) jobConf.getEngineType else "spark"
+    val className = strategyMap.get(engineType).toString
     Class.forName(className)
-      .getDeclaredMethod("create", classOf[java.util.Map[String, String]])
+      .getMethod("create", classOf[JobConf])
       .invoke(null, jobConf).asInstanceOf[StreamStrategy]
       .start()
   }

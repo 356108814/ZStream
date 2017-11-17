@@ -15,6 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hbase.scope>compile</hbase.scope>
     </properties>
 
     <dependencies>
@@ -33,20 +34,24 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.26</version>
         </dependency>
+        <!--hbase依赖-->
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
             <version>1.2.0-cdh5.8.4</version>
+            <scope>${hbase.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-common</artifactId>
             <version>1.2.0-cdh5.8.4</version>
+            <scope>${hbase.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-protocol</artifactId>
             <version>1.2.0-cdh5.8.4</version>
+            <scope>${hbase.scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.cloudera.htrace</groupId>

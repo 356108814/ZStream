@@ -112,7 +112,6 @@ class Action extends PipelineProcessor {
             table.close()
             connection.close()
           })
-          df.show()
         case _ =>
 
           df.show()
