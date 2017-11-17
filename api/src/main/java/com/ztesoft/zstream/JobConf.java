@@ -1,5 +1,6 @@
 package com.ztesoft.zstream;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Map;
  *
  * @author Yuri
  */
-public class JobConf {
+public class JobConf implements Serializable {
     private String name;
     private String desc;
     private String engineType;

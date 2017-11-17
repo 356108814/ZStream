@@ -24,6 +24,30 @@
 
     {
       "type": "action",
+      "subType": "console",
+      "inputTableName": "user_acc"
+    },
+
+    {
+      "type": "action",
+      "subType": "file",
+      "inputTableName": "user_acc",
+      "format": ",",
+      "append": true,
+      "path": "/tmp/user_acc.txt"
+    },
+
+    {
+      "type": "action",
+      "subType": "directory",
+      "inputTableName": "user_acc",
+      "format": "json",
+      "append": true,
+      "path": "/tmp/user"
+    },
+
+    {
+      "type": "action",
       "subType": "db",
       "sql": "select * from user_acc order by total desc",
       "inputTableName": "user_acc11",

@@ -3,6 +3,7 @@ package com.ztesoft.zstream.pipeline
 import java.util
 
 import com.ztesoft.zstream._
+import com.ztesoft.zstream.common.KerberosUtil
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
@@ -27,9 +28,12 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
     val appName = jobConf.getName
     val duration = params.getOrElse("duration", "5").toString.toInt
 
+    KerberosUtil.loginCluster(true, true)
+
     val conf = new SparkConf().setMaster(master).setAppName(appName)
     val ssc = new StreamingContext(conf, Seconds(duration))
-    ssc.checkpoint("J:\\spark\\checkpoint")
+//    ssc.checkpoint("J:\\spark\\checkpoint")
+    ssc.checkpoint("/tmp/checkpoint")
     val sparkSession = SparkSession.builder().config(conf).getOrCreate()
 
     val globalParams = scala.collection.mutable.Map[String, Any]("sparkSession" -> sparkSession, "ssc" -> ssc,
