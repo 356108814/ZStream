@@ -4,7 +4,7 @@ import java.io.FileWriter
 import java.util.Properties
 
 import com.alibaba.fastjson.JSONObject
-import com.ztesoft.zstream.common.KerberosUtil
+//import com.ztesoft.zstream.common.KerberosUtil
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Put}
 import org.apache.spark.sql.{Row, SparkSession}
@@ -25,7 +25,6 @@ class Action extends PipelineProcessor {
     * @return 处理后的结果集，键为输出表名
     */
   override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
-    val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
     val dstream = input.get
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
@@ -33,6 +32,7 @@ class Action extends PipelineProcessor {
     val sql = cfg("sql")
 
     dstream.foreachRDD(rowRDD => {
+      val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
       val df = {
         if (sql.isEmpty) {
           sparkSession.table(inputTableName)
@@ -93,25 +93,25 @@ class Action extends PipelineProcessor {
           val tableName = cfg("tableName")
           val family = cfg.getOrElse("family", "cf")
 
-          df.foreachPartition(rowIterator => {
-            val connection = ConnectionFactory.createConnection(KerberosUtil.createHbaseConfig())
-            val table = connection.getTable(TableName.valueOf(tableName))
-            while (rowIterator.hasNext) {
-              val row = rowIterator.next()
-              val put = {
-                val put = new Put(row.get(0).toString.getBytes())
-                var i = 0
-                for (s <- row.schema) {
-                  put.addColumn(family.getBytes(), s.name.getBytes(), row.get(i).toString.getBytes())
-                  i += 1
-                }
-                put
-              }
-              table.put(put)
-            }
-            table.close()
-            connection.close()
-          })
+//          df.foreachPartition(rowIterator => {
+//            val connection = ConnectionFactory.createConnection(KerberosUtil.createHbaseConfig())
+//            val table = connection.getTable(TableName.valueOf(tableName))
+//            while (rowIterator.hasNext) {
+//              val row = rowIterator.next()
+//              val put = {
+//                val put = new Put(row.get(0).toString.getBytes())
+//                var i = 0
+//                for (s <- row.schema) {
+//                  put.addColumn(family.getBytes(), s.name.getBytes(), row.get(i).toString.getBytes())
+//                  i += 1
+//                }
+//                put
+//              }
+//              table.put(put)
+//            }
+//            table.close()
+//            connection.close()
+//          })
         case _ =>
 
           df.show()

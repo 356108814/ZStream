@@ -1,6 +1,6 @@
 package com.ztesoft.zstream.pipeline
 
-import com.ztesoft.zstream.{JobConf, SparkUtil}
+import com.ztesoft.zstream.{GlobalCache, JobConf, SparkUtil}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.Seconds
@@ -21,8 +21,7 @@ class Transform extends PipelineProcessor {
     * @return 处理后的结果集，键为输出表名
     */
   override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
-    val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
-    val jobConf = params("jobConf").asInstanceOf[JobConf]
+    val jobConf = GlobalCache.jobConf
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val sql = cfg("sql")
     val acc = cfg.getOrElse("acc", "false").toBoolean
@@ -44,6 +43,7 @@ class Transform extends PipelineProcessor {
     }
 
     val sqlDStream = windowDStream.transform(rowRDD => {
+      val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
       val colDef = jobConf.getTableDef.get(inputTableName)
       val schema = SparkUtil.createSchema(colDef)
       val df = sparkSession.createDataFrame(rowRDD, schema)
@@ -119,10 +119,12 @@ class Transform extends PipelineProcessor {
         //第一个字段为键，最后一个字段为累加值
         val stateDStream = sqlDStream.map(row => (row(0), row)).updateStateByKey[Row](accFunc)
         //checkpoint保存
-//        stateDStream.cache()
-//        stateDStream.checkpoint(Seconds(5))
+        val interval = jobConf.getParams.get("checkpointInterval", "60").toString.toInt
+        stateDStream.cache()
+        stateDStream.checkpoint(Seconds(interval))
 
         val resultDStream = stateDStream.map(t => t._2).transform(rowRDD => {
+          val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
           val colDef = jobConf.getTableDef.get(outputTableName)
           val schema = SparkUtil.createSchema(colDef)
           val df = sparkSession.createDataFrame(rowRDD, schema)

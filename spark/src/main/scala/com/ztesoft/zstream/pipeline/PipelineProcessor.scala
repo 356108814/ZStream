@@ -11,19 +11,14 @@ import org.apache.spark.sql.Row
   */
 trait PipelineProcessor {
   protected var conf: java.util.Map[String, Object] = _
-  protected var params: scala.collection.mutable.Map[String, Any] = _
-  protected var jobConf: JobConf = _
 
   /**
     * 初始化
     *
-    * @param conf   处理器配置
-    * @param params 全局参数
+    * @param conf 处理器配置
     */
-  def init(conf: java.util.Map[String, Object], params: scala.collection.mutable.Map[String, Any]): Unit = {
+  def init(conf: java.util.Map[String, Object]): Unit = {
     this.conf = conf
-    this.params = params
-    this.jobConf = params("jobConf").asInstanceOf[JobConf]
   }
 
   /**

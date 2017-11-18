@@ -1,7 +1,7 @@
 package com.ztesoft.zstream.pipeline
 
 import com.alibaba.fastjson.JSONArray
-import com.ztesoft.zstream.{JobConf, SparkUtil}
+import com.ztesoft.zstream.{GlobalCache, JobConf, SparkUtil}
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
 
@@ -22,18 +22,15 @@ class Join extends PipelineProcessor {
     * @return 处理后的结果集，键为输出表名
     */
   override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
-    val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
-    val jobConf = params("jobConf").asInstanceOf[JobConf]
+    val jobConf = GlobalCache.jobConf
     val cfg = conf.map(s => (s._1.toString, s._2))
     val outputTableName = cfg("outputTableName").toString
     val joinType = cfg.getOrElse("joinType", "").toString
     val tableNames = cfg("inputTableName").toString.split(",").map(t => t.trim)
     val joinColumn = cfg("joinColumn").asInstanceOf[JSONArray]
     val queryColumn = cfg("queryColumn").asInstanceOf[JSONArray]
-    val sourceDStreams = params.getOrElse("_sourceDStreams", scala.collection.mutable.Map[String, DStream[Row]]())
-      .asInstanceOf[scala.collection.mutable.Map[String, DStream[Row]]]
-    val leftDStream = sourceDStreams(tableNames(0))
-    val rightDStream = sourceDStreams(tableNames(1))
+    val leftDStream = GlobalCache.sourceDStreams(tableNames(0))
+    val rightDStream = GlobalCache.sourceDStreams(tableNames(1))
     val leftPairDStream = leftDStream.map(row => (row.get(row.fieldIndex(joinColumn.getString(0))).toString, row))
     val rightPairDStream = rightDStream.map(row => (row.get(row.fieldIndex(joinColumn.getString(1))).toString, row))
 
@@ -63,6 +60,7 @@ class Join extends PipelineProcessor {
 
     //注册表
     val resultDSteam = mergeDStream.transform(rowRDD => {
+      val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
       val colDef = jobConf.getTableDef.get(outputTableName)
       val schema = SparkUtil.createSchema(colDef)
       val df = sparkSession.createDataFrame(rowRDD, schema)

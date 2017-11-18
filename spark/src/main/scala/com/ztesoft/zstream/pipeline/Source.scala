@@ -1,9 +1,8 @@
 package com.ztesoft.zstream.pipeline
 
 import com.alibaba.fastjson.JSON
-import com.ztesoft.zstream.{SourceETL, SparkUtil}
+import com.ztesoft.zstream.{GlobalCache, SourceETL, SparkUtil}
 import org.apache.spark.sql.{Row, SparkSession}
-import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 
@@ -22,8 +21,8 @@ class Source extends PipelineProcessor {
     * @return 处理后的结果集，键为输出表名
     */
   override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
-    val ssc = params("ssc").asInstanceOf[StreamingContext]
-    val sparkSession = params("sparkSession").asInstanceOf[SparkSession]
+    val ssc = GlobalCache.ssc
+    val jobConf = GlobalCache.jobConf
 
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
@@ -66,16 +65,14 @@ class Source extends PipelineProcessor {
 
     //数据源需要创建对应的表，这样后续就可以直接用了
     val result = ds.transform(rowRDD => {
+      val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
       val df = sparkSession.createDataFrame(rowRDD, SparkUtil.createSchema(colDef))
       df.createOrReplaceTempView(outputTableName)
       df.toJavaRDD
     })
 
     //缓存所有数据源对应的DStream
-    val sourceDStreams = params.getOrElse("_sourceDStreams", scala.collection.mutable.Map[String, DStream[Row]]())
-      .asInstanceOf[scala.collection.mutable.Map[String, DStream[Row]]]
-    sourceDStreams.put(outputTableName, result)
-    params.put("_sourceDStreams", sourceDStreams)
+    GlobalCache.sourceDStreams.put(outputTableName, result)
 
     Option(result)
   }
