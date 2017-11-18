@@ -17,6 +17,7 @@ public class JobConf implements Serializable {
     private List<Map<String, Object>> processors;
     private Map<String, Object> params;
     private Map<String, String> tableDef;
+    private Map<String, String> udf;
 
     public String getName() {
         return name;
@@ -101,6 +102,14 @@ public class JobConf implements Serializable {
             }
         }
         return processors;
+    }
+
+    public Map<String, String> getUdf() {
+        return udf;
+    }
+
+    public void setUdf(Map<String, String> udf) {
+        this.udf = udf;
     }
 
     @Override

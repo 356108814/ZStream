@@ -1,5 +1,6 @@
 package com.ztesoft.zstream.pipeline
 
+import com.ztesoft.zstream.udf.TestEncrypt
 import com.ztesoft.zstream.{GlobalCache, JobConf, SparkUtil}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
@@ -44,6 +45,9 @@ class Transform extends PipelineProcessor {
 
     val sqlDStream = windowDStream.transform(rowRDD => {
       val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
+      //注册自定义函数
+      SparkUtil.registerUDF(sparkSession, jobConf.getUdf)
+
       val colDef = jobConf.getTableDef.get(inputTableName)
       val schema = SparkUtil.createSchema(colDef)
       val df = sparkSession.createDataFrame(rowRDD, schema)

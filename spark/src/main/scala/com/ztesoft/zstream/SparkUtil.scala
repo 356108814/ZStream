@@ -1,11 +1,13 @@
 package com.ztesoft.zstream
 
+import java.lang.reflect.Method
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util
 
 import com.alibaba.fastjson.{JSON, JSONObject}
-import org.apache.spark.sql.Row
+import org.apache.spark.sql.api.java._
+import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types._
 
 import scala.collection.JavaConversions._
@@ -214,6 +216,53 @@ object SparkUtil {
       }
     }
     Row.fromSeq(values.toArray)
+  }
+
+  /**
+    * 注册自定义函数，最多支持8个参数
+    *
+    * @param sparkSession SparkSession
+    * @param udfs         函数，键为函数名，值为类名
+    */
+  def registerUDF(sparkSession: SparkSession, udfs: java.util.Map[String, String]): Unit = {
+    //TODO 注册默认自定义函数
+    udfs.keys.foreach(name => {
+      val className = udfs.get(name)
+      val clazz = Class.forName(className)
+      val methods = clazz.getMethods
+      val callMethod: Method = methods.filter(method => method.getName.equals("call") && method.getParameterCount > 0 && !method.getGenericParameterTypes.head.getTypeName.equals("java.lang.Object")).head
+      val parameterCount = callMethod.getParameterCount
+      val rtnTypeName = callMethod.getGenericReturnType.getTypeName
+      //兼容java和spark类型
+      val typeMap = Map(
+        "java.lang.Byte" -> ByteType, "java.lang.Short" -> ShortType, "java.lang.Integer" -> IntegerType, "java.lang.Long" -> LongType,
+        "java.lang.Float" -> FloatType, "java.lang.Double" -> DoubleType,
+        "java.util.Date" -> DateType, "java.sql.timestamp" -> TimestampType, "java.lang.Boolean" -> BooleanType,
+        "java.lang.String" -> StringType, "byte" -> ByteType, "short" -> ShortType, "int" -> IntegerType, "long" -> LongType,
+        "float" -> FloatType, "double" -> DoubleType,
+        "date" -> DateType, "timestamp" -> TimestampType, "boolean" -> BooleanType,
+        "string" -> StringType)
+      val rtnType = typeMap(rtnTypeName)
+
+      parameterCount match {
+        case 1 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF1[_, _]], rtnType)
+        case 2 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF2[_, _, _]], rtnType)
+        case 3 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF3[_, _, _, _]], rtnType)
+        case 4 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF4[_, _, _, _, _]], rtnType)
+        case 5 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF5[_, _, _, _, _, _]], rtnType)
+        case 6 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF6[_, _, _, _, _, _, _]], rtnType)
+        case 7 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF7[_, _, _, _, _, _, _, _]], rtnType)
+        case 8 =>
+          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF8[_, _, _, _, _, _, _, _, _]], rtnType)
+      }
+    })
   }
 
 

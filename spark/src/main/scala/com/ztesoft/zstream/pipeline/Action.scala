@@ -29,7 +29,7 @@ class Action extends PipelineProcessor {
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
     val inputTableName = cfg("inputTableName")
-    val sql = cfg("sql")
+    val sql = cfg.getOrElse("sql", "")
 
     dstream.foreachRDD(rowRDD => {
       val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
