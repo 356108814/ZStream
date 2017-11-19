@@ -18,7 +18,7 @@ import scala.collection.JavaConversions._
   */
 class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
 
-  val processedMap = scala.collection.mutable.Map[java.util.Map[String, Object], Boolean]()
+  private val processedMap = scala.collection.mutable.Map[java.util.Map[String, Object], Boolean]()
 
   /**
     * 使用checkpoint时，流计算业务必须包含在创建StreamingContext函数中
@@ -50,6 +50,7 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
 
   override def start(): Unit = {
     //    KerberosUtil.loginCluster(true, true)
+    //TODO checkpoint需要根据是否有acc来判断
     val checkpoint = params.getOrDefault("checkpoint", "").toString
     val ssc = {
       if (checkpoint.isEmpty) {

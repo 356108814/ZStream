@@ -7,8 +7,8 @@ import org.apache.spark.sql.api.java._
   *
   * @author Yuri
   */
-class TestEncrypt extends UDF2[Int, Integer, String] {
-  override def call(t1: Int, t2: Integer): String = {
-    s"007_${t1.toString}_$t2"
+class TestEncrypt extends UDF1[String, String] {
+  override def call(t1: String): String = {
+    s"007_$t1"
   }
 }

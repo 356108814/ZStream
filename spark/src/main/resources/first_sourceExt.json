@@ -1,0 +1,41 @@
+{
+  "name": "firstJob",
+  "desc": "test",
+  "engineType": "spark",
+  "processors": [
+    {
+      "type": "source",
+      "subType": "directory",
+      "format": ",",
+      "path": "file:///Users/apple/debugData/users",
+      "outputTableName": "user",
+      "extClass": "com.ztesoft.zstream.TestSourceExtProcessor"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select id, name from user where id > 1",
+      "inputTableName": "user",
+      "outputTableName": "adult"
+    },
+
+    {
+      "type": "action",
+      "subType": "console",
+      "inputTableName": "adult"
+    }
+
+  ],
+
+  "tableDef": {
+    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
+  },
+
+  "params": {
+    "master": "local[4]",
+    "duration": 5,
+    "checkpoint": ""
+  }
+
+}

@@ -230,7 +230,11 @@ object SparkUtil {
       val className = udfs.get(name)
       val clazz = Class.forName(className)
       val methods = clazz.getMethods
-      val callMethod: Method = methods.filter(method => method.getName.equals("call") && method.getParameterCount > 0 && !method.getGenericParameterTypes.head.getTypeName.equals("java.lang.Object")).head
+      val callMethod: Method = methods.filter(
+        method => method.getName.equals("call")
+          && method.getParameterCount > 0
+          && !method.getGenericParameterTypes.head.getTypeName.equals("java.lang.Object")).head
+
       val parameterCount = callMethod.getParameterCount
       val rtnTypeName = callMethod.getGenericReturnType.getTypeName
       //兼容java和spark类型

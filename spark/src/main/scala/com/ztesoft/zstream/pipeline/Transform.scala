@@ -1,7 +1,6 @@
 package com.ztesoft.zstream.pipeline
 
-import com.ztesoft.zstream.udf.TestEncrypt
-import com.ztesoft.zstream.{GlobalCache, JobConf, SparkUtil}
+import com.ztesoft.zstream.{GlobalCache, SparkUtil}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.Seconds
@@ -46,7 +45,18 @@ class Transform extends PipelineProcessor {
     val sqlDStream = windowDStream.transform(rowRDD => {
       val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
       //注册自定义函数
-      SparkUtil.registerUDF(sparkSession, jobConf.getUdf)
+      if(jobConf.getUdf != null) {
+        SparkUtil.registerUDF(sparkSession, jobConf.getUdf)
+      }
+
+      //注册维度表
+      val dimProcessors = jobConf.getDimProcessors
+      for (conf <- dimProcessors) {
+        val dim = new Dim()
+        dim.init(conf)
+        dim.setSparkConf(rowRDD.sparkContext.getConf)
+        dim.process(null)
+      }
 
       val colDef = jobConf.getTableDef.get(inputTableName)
       val schema = SparkUtil.createSchema(colDef)
@@ -123,7 +133,7 @@ class Transform extends PipelineProcessor {
         //第一个字段为键，最后一个字段为累加值
         val stateDStream = sqlDStream.map(row => (row(0), row)).updateStateByKey[Row](accFunc)
         //checkpoint保存
-        val interval = jobConf.getParams.get("checkpointInterval", "60").toString.toInt
+        val interval = jobConf.getParams.getOrDefault("checkpointInterval", "60").toString.toInt
         stateDStream.cache()
         stateDStream.checkpoint(Seconds(interval))
 

@@ -70,31 +70,40 @@ public class JobConf implements Serializable {
     /**
      * 获取数据源配置
      *
-     * @return 数据源列表
+     * @return 数据源配置列表
      */
     public List<Map<String, Object>> getSourceProcessors() {
-        return getSourceProcessorsByType("source");
+        return getProcessorsByType("source");
+    }
+
+    /**
+     * 获取维度表配置
+     *
+     * @return 维度表列表
+     */
+    public List<Map<String, Object>> getDimProcessors() {
+        return getProcessorsByType("dim");
     }
 
     /**
      * 获取转换计算配置
      *
-     * @return 数据源列表
+     * @return 转换配置列表
      */
     public List<Map<String, Object>> getTransformProcessors() {
-        return getSourceProcessorsByType("transform");
+        return getProcessorsByType("transform");
     }
 
     /**
      * 获取动作配置
      *
-     * @return 数据源列表
+     * @return action配置列表
      */
     public List<Map<String, Object>> getActionProcessors() {
-        return getSourceProcessorsByType("action");
+        return getProcessorsByType("action");
     }
 
-    private List<Map<String, Object>> getSourceProcessorsByType(String type) {
+    private List<Map<String, Object>> getProcessorsByType(String type) {
         List<Map<String, Object>> processors = new ArrayList<>();
         for (Map<String, Object> p : this.processors) {
             if (p.get("type").equals(type)) {

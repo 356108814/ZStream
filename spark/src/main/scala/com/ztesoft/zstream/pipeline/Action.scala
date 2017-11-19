@@ -77,7 +77,7 @@ class Action extends PipelineProcessor {
             case _ => dfWriter.csv(path)
           }
 
-        case "db" =>
+        case "jdbc" =>
           val url = cfg("url")
           val dbtable = cfg("dbtable")
           val username = cfg("username")

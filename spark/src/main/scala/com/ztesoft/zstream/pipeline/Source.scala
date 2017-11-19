@@ -2,6 +2,9 @@ package com.ztesoft.zstream.pipeline
 
 import com.alibaba.fastjson.JSON
 import com.ztesoft.zstream.{GlobalCache, SourceETL, SparkUtil}
+import org.apache.hadoop.fs.Path
+import org.apache.hadoop.io.{LongWritable, Text}
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
@@ -9,6 +12,7 @@ import org.apache.spark.streaming.kafka.KafkaUtils
 import scala.collection.JavaConversions._
 
 /**
+  * 数据源处理器
   *
   * @author Yuri
   */
@@ -26,11 +30,11 @@ class Source extends PipelineProcessor {
 
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
-    val path = cfg.getOrElse("path", "")
     //json或分隔符
     val format = cfg.getOrElse("format", ",")
     val outputTableName = cfg("outputTableName")
     val colDef = jobConf.getTableDef.get(outputTableName)
+    val extClass = cfg.getOrElse("extClass", "com.ztesoft.zstream.DefaultSourceExtProcessor").toString
 
     val dstream = subType match {
       case "socket" =>
@@ -44,7 +48,13 @@ class Source extends PipelineProcessor {
         KafkaUtils.createStream(ssc, zkQuorum, group, topicMap).map(_._2)
 
       case "directory" =>
-        ssc.textFileStream(path)
+        val path = cfg.getOrElse("path", "")
+        val fileFilterFunc = new Function[Path, Boolean] {
+          def apply(path: Path): Boolean = {
+            SourceETL.filterFile(path.getName, extClass)
+          }
+        }
+        ssc.fileStream[LongWritable, Text, TextInputFormat](path, fileFilterFunc, newFilesOnly = true).map(_._2.toString)
 
       case _ =>
         require(requirement = false, "不支持的数据源类型：" + subType)
@@ -52,7 +62,6 @@ class Source extends PipelineProcessor {
     }
 
     //经etl后的dstream
-    val extClass = cfg.getOrElse("extClass", "com.ztesoft.zstream.DefaultSourceExtProcessor")
     val etlDStream = dstream.filter(line => SourceETL.filter(line, format, SparkUtil.createColumnDefList(colDef), extClass))
       .map(line => SourceETL.transform(line, format, SparkUtil.createColumnDefList(colDef), extClass))
     val schema = SparkUtil.createSchema(colDef)

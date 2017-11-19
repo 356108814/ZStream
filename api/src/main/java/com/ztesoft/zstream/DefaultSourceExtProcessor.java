@@ -15,6 +15,18 @@ import java.util.Map;
  */
 public class DefaultSourceExtProcessor implements SourceExtProcessor {
 
+
+    /**
+     * 过滤文件
+     *
+     * @param filePath 文件路径
+     * @return true表示需要处理
+     */
+    @Override
+    public boolean filterFile(String filePath) {
+        return true;
+    }
+
     /**
      * 数据验证通不过直接丢弃不处理
      *
@@ -24,7 +36,7 @@ public class DefaultSourceExtProcessor implements SourceExtProcessor {
      * @return true表示需要处理
      */
     @Override
-    public boolean filter(String line, String format, List<ColumnDef> columnDefs) {
+    public boolean filterLine(String line, String format, List<ColumnDef> columnDefs) {
         if (isJson(format)) {
             JSONObject jsonObject = JSON.parseObject(line);
             if (jsonObject.size() != columnDefs.size()) {
@@ -61,7 +73,7 @@ public class DefaultSourceExtProcessor implements SourceExtProcessor {
     }
 
     @Override
-    public String transform(String line, String format, List<ColumnDef> columnDefs) {
+    public String transformLine(String line, String format, List<ColumnDef> columnDefs) {
         return line;
     }
 

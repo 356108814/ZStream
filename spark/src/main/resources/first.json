@@ -6,40 +6,55 @@
     {
       "type": "source",
       "subType": "socket",
-      "format": ",",
       "host": "localhost",
-      "port": "9999",
-      "outputTableName": "user",
-      "extClass": "com.ztesoft.zstream.DefaultSourceExtProcessor"
+      "port": 9999,
+      "format": ",",
+      "outputTableName": "user"
+    },
+
+    {
+      "type": "dim",
+      "subType": "file",
+      "path": "/Users/apple/debugData/address.json",
+      "format": "json",
+      "outputTableName": "address"
     },
 
     {
       "type": "transform",
       "subType": "sql",
-      "sql": "select id, encrypt(id, id) from user",
+      "sql": "select u.id, u.name, a.addr from user u left join address a on u.id = a.id",
       "inputTableName": "user",
-      "outputTableName": "user_007"
+      "outputTableName": "user_addr"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select addr, count(addr) from user_addr group by addr",
+      "acc": true,
+      "inputTableName": "user_addr",
+      "outputTableName": "addr_count"
     },
 
     {
       "type": "action",
       "subType": "console",
-      "inputTableName": "user_007"
+      "inputTableName": "addr_count"
     }
+
   ],
 
   "tableDef": {
-    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
-  },
-
-  "udf": {
-    "encrypt": "com.ztesoft.zstream.udf.TestEncrypt"
+    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
+    "user_addr": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}, {\"name\": \"addr\", \"type\": \"string\"}]",
+    "addr_count": "[{\"name\": \"addr\", \"type\": \"string\"}, {\"name\": \"count\", \"type\": \"long\"}]"
   },
 
   "params": {
     "master": "local[4]",
     "duration": 5,
-    "checkpoint": ""
+    "checkpoint": "/Users/apple/spark/checkpoint"
   }
 
 }

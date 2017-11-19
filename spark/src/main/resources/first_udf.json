@@ -14,26 +14,59 @@
     },
 
     {
+      "type": "source",
+      "subType": "socket",
+      "format": ",",
+      "host": "localhost",
+      "port": "9998",
+      "outputTableName": "address"
+    },
+
+    {
       "type": "transform",
       "subType": "sql",
-      "sql": "select id, encrypt(id, id) from user",
+      "sql": "select id, encrypt(name) as name from user",
       "inputTableName": "user",
       "outputTableName": "user_007"
+    },
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select uuid(id, name), name from user_007",
+      "inputTableName": "user_007",
+      "outputTableName": "user_001"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select encrypt(address) from address",
+      "inputTableName": "address",
+      "outputTableName": "user_address"
     },
 
     {
       "type": "action",
       "subType": "console",
-      "inputTableName": "user_007"
+      "inputTableName": "user_001"
+    },
+
+    {
+      "type": "action",
+      "subType": "console",
+      "inputTableName": "user_address"
     }
   ],
 
   "tableDef": {
-    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
+    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
+    "address": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"address\", \"type\": \"string\"}]",
+    "user_007": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
   },
 
   "udf": {
-    "encrypt": "com.ztesoft.zstream.udf.TestEncrypt"
+    "encrypt": "com.ztesoft.zstream.udf.TestEncrypt",
+    "uuid": "com.ztesoft.zstream.udf.TestUuid"
   },
 
   "params": {
