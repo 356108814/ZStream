@@ -1,7 +1,7 @@
 package com.ztesoft.zstream.pipeline
 
 import com.alibaba.fastjson.JSON
-import com.ztesoft.zstream.{GlobalCache, SourceETL, SparkUtil}
+import com.ztesoft.zstream.{FileReceiver, GlobalCache, SourceETL, SparkUtil}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
@@ -34,13 +34,17 @@ class Source extends PipelineProcessor {
     val format = cfg.getOrElse("format", ",")
     val outputTableName = cfg("outputTableName")
     val colDef = jobConf.getTableDef.get(outputTableName)
-    val extClass = cfg.getOrElse("extClass", "com.ztesoft.zstream.DefaultSourceExtProcessor").toString
+    val extClass = cfg.getOrElse("extClass", "com.ztesoft.zstream.DefaultSourceExtProcessor")
 
     val dstream = subType match {
       case "socket" =>
         val host = cfg("host")
         val port = cfg("port").toInt
         ssc.socketTextStream(host, port)
+      case "file" =>
+        //文件模式，用于调试，只适用于local模式
+        val filePath = cfg("path")
+        ssc.receiverStream(new FileReceiver(filePath))
 
       case "kafka" =>
         val Array(zkQuorum, group, topics, numThreads) = Array(cfg("zkQuorum"), cfg("group"), cfg("topics"), cfg.getOrElse("numThreads", "1"))

@@ -1,0 +1,44 @@
+{
+  "id": "888",
+  "name": "firstJob",
+  "desc": "test",
+  "engineType": "spark",
+  "processors": [
+    {
+      "type": "source",
+      "subType": "file",
+      "path": "J:/spark/source/u.txt",
+      "format": ",",
+      "outputTableName": "user"
+    },
+
+    {
+      "type": "transform",
+      "subType": "sql",
+      "sql": "select * from user where id > 1",
+      "inputTableName": "user",
+      "outputTableName": "adult"
+    },
+
+    {
+      "type": "action",
+      "subType": "debug",
+      "inputTableName": "adult",
+      "url": "jdbc:mysql://10.45.47.66:3306/?user=root&password=root&useUnicode=true&amp;characterEncoding=UTF-8",
+      "dbtable": "z_realt_eng_dev.zs_task_debug_result"
+    }
+
+  ],
+
+  "tableDef": {
+    "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
+    "adult": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
+  },
+
+  "params": {
+    "master": "local[4]",
+    "duration": 5,
+    "checkpoint": ""
+  }
+
+}

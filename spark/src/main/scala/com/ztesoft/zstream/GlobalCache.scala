@@ -35,5 +35,4 @@ object GlobalCache {
   def getParam(name: String): Any = {
     paramMap.get(name)
   }
-
 }

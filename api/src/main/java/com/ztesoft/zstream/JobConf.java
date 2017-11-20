@@ -11,6 +11,10 @@ import java.util.Map;
  * @author Yuri
  */
 public class JobConf implements Serializable {
+    /**
+     * 作业唯一标识
+     */
+    private String id;
     private String name;
     private String desc;
     private String engineType;
@@ -18,6 +22,14 @@ public class JobConf implements Serializable {
     private Map<String, Object> params;
     private Map<String, String> tableDef;
     private Map<String, String> udf;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -121,15 +133,33 @@ public class JobConf implements Serializable {
         this.udf = udf;
     }
 
+    /**
+     * 当启用了累加计算时，必须设置checkpoint
+     *
+     * @return true，需要设置
+     */
+    public boolean isNeedSetCheckpoint() {
+        boolean isNeed = false;
+        List<Map<String, Object>> transformProcessors = getTransformProcessors();
+        for (Map<String, Object> map : transformProcessors) {
+            if (map.containsKey("acc") && Boolean.parseBoolean(map.get("acc").toString())) {
+                isNeed = true;
+            }
+        }
+        return isNeed;
+    }
+
     @Override
     public String toString() {
         return "JobConf{" +
-                "name='" + name + '\'' +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", engineType='" + engineType + '\'' +
                 ", processors=" + processors +
                 ", params=" + params +
                 ", tableDef=" + tableDef +
+                ", udf=" + udf +
                 '}';
     }
 }

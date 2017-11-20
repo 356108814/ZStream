@@ -3,9 +3,8 @@ package com.ztesoft.zstream.pipeline
 import java.util
 
 import com.ztesoft.zstream._
-//import com.ztesoft.zstream.common.KerberosUtil
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.{Row}
+import org.apache.spark.sql.Row
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
@@ -49,16 +48,16 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
   }
 
   override def start(): Unit = {
-    //    KerberosUtil.loginCluster(true, true)
-    //TODO checkpoint需要根据是否有acc来判断
-    val checkpoint = params.getOrDefault("checkpoint", "").toString
+    Config.load("config.properties")
+    KerberosUtil.loginCluster(Config.isUseKerberos, Config.isDebug)
+    val checkpoint = Config.checkpoint + "/" + jobConf.getId
     val ssc = {
-      if (checkpoint.isEmpty) {
-        createSSC()
-      } else {
+      if (jobConf.isNeedSetCheckpoint) {
         val ssc = StreamingContext.getOrCreate(checkpoint, createSSC)
         ssc.checkpoint(checkpoint)
         ssc
+      } else {
+        createSSC()
       }
     }
 
