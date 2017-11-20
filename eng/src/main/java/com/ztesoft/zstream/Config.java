@@ -1,8 +1,5 @@
 package com.ztesoft.zstream;
 
-import java.util.Enumeration;
-import java.util.Properties;
-
 /**
  * 配置
  *
@@ -14,17 +11,19 @@ public class Config {
     public static boolean isDebug = false;
 
     public static void load(String filename) {
-        if (filename == null || filename.isEmpty()) {
-            filename = "config.properties";
-        }
-        Properties properties = PropertyUtil.getProperties(filename);
-        if (properties != null) {
-            Enumeration nameEnum = properties.propertyNames();
-            while (nameEnum.hasMoreElements()) {
-                String name = (String) nameEnum.nextElement();
-                String value = properties.getProperty(name);
-                PropertyUtil.reflectSetProperty(Config.class, name, value);
-            }
-        }
+        //TODO 改成调用java的，不调用Scala。如果调用Scala，则导致maven打包eng的时候不能编译Scala代码，原因未知
+        //TODO 如果maven编译的时候加上scala:compile，编译可以通过，但是编译的jar包有问题，报错不支持数据源file
+//        if (filename == null || filename.isEmpty()) {
+//            filename = "config.properties";
+//        }
+//        Properties properties = PropertyUtil.getProperties(filename);
+//        if (properties != null) {
+//            Enumeration nameEnum = properties.propertyNames();
+//            while (nameEnum.hasMoreElements()) {
+//                String name = (String) nameEnum.nextElement();
+//                String value = properties.getProperty(name);
+//                PropertyUtil.reflectSetProperty(Config.class, name, value);
+//            }
+//        }
     }
 }
