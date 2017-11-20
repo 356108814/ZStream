@@ -43,18 +43,6 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>local</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <mode>local</mode>
-                <scope>compile</scope>
-            </properties>
-            <dependencies>
-            </dependencies>
-        </profile>
     </profiles>
 
     <name>zstream-spark</name>
@@ -63,7 +51,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spark.version>2.1.1</spark.version>
-        <spark.scope>compile</spark.scope>
     </properties>
 
     <dependencies>
@@ -81,13 +68,13 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
-            <scope>${spark.scope}</scope>
+            <scope>${scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
-            <scope>${spark.scope}</scope>
+            <scope>${scope}</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>

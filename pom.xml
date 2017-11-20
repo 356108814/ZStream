@@ -9,7 +9,6 @@
     <module>eng</module>
     <module>api</module>
     <module>manager</module>
-    <!--<module>spark</module>-->
   </modules>
   <packaging>pom</packaging>
 
@@ -29,6 +28,7 @@
     <jdk.version>1.8</jdk.version>
     <scala.version>2.11.8</scala.version>
     <scala.binary.version>2.11</scala.binary.version>
+    <scope>compile</scope>
   </properties>
 
   <profiles>
@@ -115,7 +115,5 @@
       </plugin>
     </plugins>
   </build>
-
-
 
 </project>

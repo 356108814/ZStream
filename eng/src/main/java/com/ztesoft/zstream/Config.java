@@ -4,6 +4,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 /**
+ * 配置
+ *
  * @author Yuri
  */
 public class Config {
@@ -12,7 +14,7 @@ public class Config {
     public static boolean isDebug = false;
 
     public static void load(String filename) {
-        if(filename == null || filename.isEmpty()) {
+        if (filename == null || filename.isEmpty()) {
             filename = "config.properties";
         }
         Properties properties = PropertyUtil.getProperties(filename);

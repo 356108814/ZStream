@@ -32,7 +32,7 @@ object SparkUtil {
     for (col <- colDef.toArray) {
       val jo = col.asInstanceOf[com.alibaba.fastjson.JSONObject]
       val name = jo.getString("name")
-      val cType = jo.getString("type")
+      val cType = jo.getString("type").toLowerCase
       if (!typeMap.contains(cType)) {
         Logging.logWarning("不支持的数据类型：" + cType)
       }

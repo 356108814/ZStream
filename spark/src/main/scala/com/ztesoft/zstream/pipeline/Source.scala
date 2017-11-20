@@ -41,6 +41,7 @@ class Source extends PipelineProcessor {
         val host = cfg("host")
         val port = cfg("port").toInt
         ssc.socketTextStream(host, port)
+
       case "file" =>
         //文件模式，用于调试，只适用于local模式
         val filePath = cfg("path")
