@@ -149,6 +149,22 @@ public class JobConf implements Serializable {
         return isNeed;
     }
 
+    /***
+     * 获取输出表名称列表
+     *
+     * @return 名称列表
+     */
+    public List<String> getOutputTableNames() {
+        List<String> names = new ArrayList<>();
+        for (Map<String, Object> p : this.processors) {
+            String type = p.get("type").toString();
+            if ("source".equals(type) || "transform".equals(type)) {
+                names.add(p.get("outputTableName").toString());
+            }
+        }
+        return names;
+    }
+
     @Override
     public String toString() {
         return "JobConf{" +

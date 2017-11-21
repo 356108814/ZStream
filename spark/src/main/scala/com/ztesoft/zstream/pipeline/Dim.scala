@@ -26,8 +26,6 @@ class Dim extends PipelineProcessor {
     * @return 处理后的结果集，键为输出表名
     */
   override def process(input: Option[DStream[Row]]): Option[DStream[Row]] = {
-    val ssc = GlobalCache.ssc
-
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
     //json或分隔符

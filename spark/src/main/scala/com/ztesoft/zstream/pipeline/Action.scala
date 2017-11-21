@@ -57,7 +57,7 @@ class Action extends PipelineProcessor {
 
         case "file" =>
           val path = cfg("path")
-          val append = cfg("append").toBoolean
+          val append = cfg.getOrElse("append", "true").toBoolean
           val format = cfg.getOrDefault("format", ",")
           val out = new FileWriter(path, append)
           for (row <- df.collect()) {
@@ -80,7 +80,7 @@ class Action extends PipelineProcessor {
 
         case "directory" =>
           val path = cfg("path")
-          val append = cfg("append").toBoolean
+          val append = cfg.getOrElse("append", "true").toBoolean
           val mode = if (append) "append" else "overwrite"
           val dfWriter = df.write.mode(mode)
           val format = cfg.getOrDefault("format", "csv")
@@ -94,7 +94,7 @@ class Action extends PipelineProcessor {
           val dbtable = cfg("dbtable")
           val username = cfg("username")
           val password = cfg("password")
-          val append = cfg("append").toBoolean
+          val append = cfg.getOrDefault("append", "false").toBoolean
           val mode = if (append) "append" else "overwrite"
           val connectionProperties = new Properties()
           connectionProperties.put("user", username)
@@ -125,7 +125,6 @@ class Action extends PipelineProcessor {
             connection.close()
           })
         case _ =>
-
           df.show()
       }
     })

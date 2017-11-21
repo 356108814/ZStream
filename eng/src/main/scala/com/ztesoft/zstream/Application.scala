@@ -12,6 +12,8 @@ object Application {
     }
     //参数设置和验证
     val param = new JobParam(args)
+    val jobConfValidator = new JobConfValidator(param.jobConf)
+    jobConfValidator.validate()
     val jobContext = new JobContext(param.jobConf)
     jobContext.start()
   }

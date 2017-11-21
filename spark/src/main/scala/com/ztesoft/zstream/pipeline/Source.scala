@@ -1,7 +1,7 @@
 package com.ztesoft.zstream.pipeline
 
 import com.alibaba.fastjson.JSON
-import com.ztesoft.zstream.{FileReceiver, GlobalCache, SourceETL, SparkUtil}
+import com.ztesoft.zstream._
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.{LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
@@ -34,7 +34,12 @@ class Source extends PipelineProcessor {
     val format = cfg.getOrElse("format", ",")
     val outputTableName = cfg("outputTableName")
     val colDef = jobConf.getTableDef.get(outputTableName)
-    val extClass = cfg.getOrElse("extClass", "com.ztesoft.zstream.DefaultSourceExtProcessor")
+    val defaultExtClass = "com.ztesoft.zstream.DefaultSourceExtProcessor"
+    var extClass = cfg.getOrElse("extClass", defaultExtClass)
+    if(extClass.isEmpty) {
+      extClass = defaultExtClass
+      Logging.logWarning(s"数据源${outputTableName}使用默认的扩展处理器$defaultExtClass")
+    }
 
     val dstream = subType match {
       case "socket" =>
@@ -67,8 +72,8 @@ class Source extends PipelineProcessor {
     }
 
     //经etl后的dstream
-    val etlDStream = dstream.filter(line => SourceETL.filter(line, format, SparkUtil.createColumnDefList(colDef), extClass))
-      .map(line => SourceETL.transform(line, format, SparkUtil.createColumnDefList(colDef), extClass))
+    val etlDStream = dstream.filter(line => SourceETL.filterLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
+      .map(line => SourceETL.transformLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
     val schema = SparkUtil.createSchema(colDef)
     val ds = format match {
       case "json" =>

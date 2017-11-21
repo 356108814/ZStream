@@ -90,8 +90,8 @@ class SparkStreamSourceProcessor[T] extends SourceProcessor[T] {
       if (dstream != null) {
         //经etl后的dstream
         val extClass = cfg.getOrElse("extClass", "com.ztesoft.zstream.DefaultSourceExtProcessor")
-        val etlDStream = dstream.filter(line => SourceETL.filter(line, format, SparkUtil.createColumnDefList(colDef), extClass))
-          .map(line => SourceETL.transform(line, format, SparkUtil.createColumnDefList(colDef), extClass))
+        val etlDStream = dstream.filter(line => SourceETL.filterLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
+          .map(line => SourceETL.transformLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
         val schema = SparkUtil.createSchema(colDef)
         val ds = format match {
           case "json" =>
