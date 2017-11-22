@@ -13,42 +13,24 @@
     },
 
     {
-      "type": "dim",
-      "subType": "file",
-      "path": "/Users/apple/debugData/address.json",
-      "format": "json",
-      "outputTableName": "address"
-    },
-
-    {
       "type": "transform",
       "subType": "sql",
-      "sql": "select u.id, u.name, a.addr from user u left join address a on u.id = a.id",
+      "sql": "select id, uuid(name) from user",
       "inputTableName": "user",
-      "outputTableName": "user_addr"
-    },
-
-    {
-      "type": "transform",
-      "subType": "sql",
-      "sql": "select addr, count(addr) from user_addr group by addr",
-      "acc": true,
-      "inputTableName": "user_addr",
-      "outputTableName": "addr_count"
+      "outputTableName": "user_uuid"
     },
 
     {
       "type": "action",
       "subType": "console",
-      "inputTableName": "addr_count"
+      "inputTableName": "user_uuid"
     }
 
   ],
 
   "tableDef": {
     "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
-    "user_addr": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}, {\"name\": \"addr\", \"type\": \"string\"}]",
-    "addr_count": "[{\"name\": \"addr\", \"type\": \"string\"}, {\"name\": \"count\", \"type\": \"long\"}]"
+    "user_uuid": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
   },
 
   "params": {
