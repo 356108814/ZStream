@@ -51,7 +51,7 @@ class Source extends PipelineProcessor {
         ssc.socketTextStream(host, port)
 
       case "file" =>
-        //文件模式，用于调试，只适用于local模式
+        //文件模式，默认hdfs格式，本地文件必须以file://开头
         val filePath = cfg("path")
         ssc.receiverStream(new FileReceiver(filePath))
 

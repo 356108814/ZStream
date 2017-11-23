@@ -3,6 +3,7 @@ package com.ztesoft.zstream
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.receiver.Receiver
 
+import scala.collection.Iterator
 import scala.io.Source
 
 /**
@@ -26,7 +27,14 @@ class FileReceiver(filePath: String) extends Receiver[String](StorageLevel.MEMOR
 
   private def receive() {
     try {
-      val lines = Source.fromFile(filePath, "utf-8").getLines()
+      var lines: Iterator[String] = null
+      val schema = "file://"
+      if (filePath.startsWith(schema)) {
+        val realFilePath = filePath.replace(schema, "")
+        lines = Source.fromFile(realFilePath, "utf-8").getLines()
+      } else {
+        lines = HdfsUtil.readFile(filePath).split("\n").toIterator
+      }
       while (!isStopped) {
         for (line <- lines) {
           store(line)

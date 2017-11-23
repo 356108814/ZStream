@@ -4,14 +4,15 @@ import java.io.FileWriter
 import java.util.Properties
 
 import com.alibaba.fastjson.JSONObject
-import com.ztesoft.zstream.{GlobalCache, KerberosUtil}
 import com.ztesoft.zstream.action.DebugAction
+import com.ztesoft.zstream.{GlobalCache, HdfsUtil, KerberosUtil}
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Put}
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * 输出动作
@@ -59,7 +60,7 @@ class Action extends PipelineProcessor {
           val path = cfg("path")
           val append = cfg.getOrElse("append", "true").toBoolean
           val format = cfg.getOrDefault("format", ",")
-          val out = new FileWriter(path, append)
+          val content = new ArrayBuffer[String]()
           for (row <- df.collect()) {
             val line = {
               format match {
@@ -74,9 +75,17 @@ class Action extends PipelineProcessor {
                 case _ => row.mkString(format)
               }
             }
-            out.write(line + "\n")
+            content += line
           }
-          out.close()
+          val schema = "file://"
+          if (path.startsWith(schema)) {
+            val realFilePath = path.replace(schema, "")
+            val out = new FileWriter(realFilePath, append)
+            out.write(content.mkString("\n"))
+            out.close()
+          } else {
+            HdfsUtil.append(path, content.mkString("\n"))
+          }
 
         case "directory" =>
           val path = cfg("path")

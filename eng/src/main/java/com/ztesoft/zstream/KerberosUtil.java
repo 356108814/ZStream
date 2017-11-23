@@ -94,7 +94,7 @@ public class KerberosUtil {
         return ugi;
     }
 
-    private static Configuration createHdfsConfig() {
+    public static Configuration createHdfsConfig() {
         Configuration conf = new Configuration();
         conf.setClassLoader(KerberosUtil.class.getClassLoader());
         Path hdfsPath = new Path("hdfs-site.xml");
