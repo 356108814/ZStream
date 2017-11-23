@@ -103,6 +103,10 @@ class JobConfValidator(jobConf: JobConf) {
             case "hbase" =>
               requireAttr(conf, "tableName", prefix)
               requireAttr(conf, "cf", prefix)
+            case "redis" =>
+              requireAttr(conf, "host", prefix)
+            case "userDefine" =>
+              requireAttr(conf, "className", prefix)
             case _ =>
               invalidAttr("subType", pSubType, prefix)
           }

@@ -65,6 +65,15 @@
       "family": "cf",
       "sql": "select * from user_acc order by total desc",
       "inputTableName": "user_acc"
+    },
+
+    {
+      "type": "action",
+      "subType": "redis",
+      "sql": "select id, count(id) from user group by id",
+      "host": "localhost",
+      "key": "userCount",
+      "inputTableName": "user_count"
     }
   ],
 

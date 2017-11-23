@@ -4,8 +4,8 @@ import java.io.FileWriter
 import java.util.Properties
 
 import com.alibaba.fastjson.JSONObject
-import com.ztesoft.zstream.action.DebugAction
-import com.ztesoft.zstream.{GlobalCache, HdfsUtil, KerberosUtil}
+import com.ztesoft.zstream.action.{DebugAction, RedisAction}
+import com.ztesoft.zstream._
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Put}
 import org.apache.spark.sql.{Row, SparkSession}
@@ -133,6 +133,22 @@ class Action extends PipelineProcessor {
             table.close()
             connection.close()
           })
+
+        case "redis" =>
+          val host = cfg("host")
+          val port = cfg.getOrElse("port", "6379").toInt
+          val dbIndex = cfg.getOrElse("index", "0").toInt
+          val key = cfg.getOrElse("key", "")
+          val redisAction = new RedisAction(host, port, dbIndex, key)
+          redisAction.process(df)
+
+        case "userDefine" =>
+          val className = "com.ztesoft.zstream.DefaultActionExtProcessor"
+          val actionExtProcessor = Class.forName(className).newInstance().asInstanceOf[ActionExtProcessor]
+          df.foreachPartition(iteratorRow => {
+            actionExtProcessor.process(SparkUtil.listRowToListMap(iteratorRow.toList))
+          })
+
         case _ =>
           df.show()
       }

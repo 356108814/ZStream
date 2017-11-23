@@ -18,5 +18,9 @@ object T {
     val rtnType = callMethod.getGenericReturnType.getTypeName
     println(parameterCount)
     println(rtnType)
+
+    val s = "host is ${stream.host}"
+    val r = s.replaceAll("\\$\\{stream.host}", "host66")
+    println(r)
   }
 }

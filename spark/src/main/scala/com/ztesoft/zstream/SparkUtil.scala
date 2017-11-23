@@ -8,8 +8,8 @@ import java.util
 
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.spark.sql.api.java._
-import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types._
+import org.apache.spark.sql.{Row, SparkSession}
 import org.python.core.PyString
 import org.python.util.PythonInterpreter
 
@@ -290,6 +290,24 @@ object SparkUtil {
       val result = func.__call__(new PyString(input))
       result.toString
     })
+  }
+
+  /**
+    * row列表转换为map列表
+    *
+    * @param rows Row列表
+    * @return List<Map>
+    */
+  def listRowToListMap(rows: List[Row]): java.util.List[java.util.Map[String, Object]] = {
+    val list = new util.ArrayList[java.util.Map[String, Object]]()
+    for (row <- rows) {
+      val map: java.util.HashMap[String, Object] = new java.util.HashMap[String, Object]()
+      for (s <- row.schema.toList) {
+        map.put(s.name, row.get(row.fieldIndex(s.name)).asInstanceOf[Object])
+      }
+      list.add(map)
+    }
+    list
   }
 
 

@@ -1,5 +1,6 @@
 package com.ztesoft.zstream;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -7,7 +8,7 @@ import java.util.List;
  *
  * @author Yuri
  */
-public interface SourceExtProcessor {
+public interface SourceExtProcessor extends Serializable {
 
     /**
      * 过滤文件
