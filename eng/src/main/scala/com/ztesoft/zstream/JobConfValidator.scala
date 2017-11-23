@@ -135,8 +135,8 @@ class JobConfValidator(jobConf: JobConf) {
     val conf = jobConf.getParams
     jobConf.getEngineType match {
       case "spark" =>
-        requireAttr(conf, "master", prefix)
-        requireAttr(conf, "duration", prefix)
+        requireAttr(conf, "spark.master", prefix)
+        requireAttr(conf, "spark.duration", prefix)
     }
   }
 

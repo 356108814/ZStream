@@ -1,4 +1,5 @@
 {
+  "id": 999,
   "name": "firstJob",
   "desc": "test",
   "engineType": "spark",
@@ -70,9 +71,8 @@
   },
 
   "params": {
-    "master": "local[4]",
-    "duration": 5,
-    "checkpoint": ""
+    "spark.master": "local[4]",
+    "spark.duration": 5
   }
 
 }

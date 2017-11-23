@@ -1,4 +1,5 @@
 {
+  "id": 999,
   "name": "firstJob",
   "desc": "test",
   "engineType": "spark",
@@ -6,7 +7,7 @@
     {
       "type": "source",
       "subType": "socket",
-      "host": "localhost",
+      "host": "${user.host}",
       "port": 9999,
       "format": ",",
       "outputTableName": "user"
@@ -15,28 +16,30 @@
     {
       "type": "transform",
       "subType": "sql",
-      "sql": "select id, uuid(name) from user",
+      "sql": "select id, count(id) from user group by id",
       "inputTableName": "user",
-      "outputTableName": "user_uuid"
+      "outputTableName": "user_count"
     },
 
     {
       "type": "action",
-      "subType": "console",
-      "inputTableName": "user_uuid"
+      "subType": "redis",
+      "host": "localhost",
+      "key": "userCount",
+      "inputTableName": "user_count"
     }
 
   ],
 
   "tableDef": {
     "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
-    "user_uuid": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
+    "user_count": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"count\", \"type\": \"long\"}]"
   },
 
   "params": {
-    "master": "local[4]",
-    "duration": 5,
-    "checkpoint": "/Users/apple/spark/checkpoint"
+    "spark.master": "local[4]",
+    "spark.duration": 5,
+    "user.host": "10.45.47.66"
   }
 
 }
