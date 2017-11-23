@@ -36,6 +36,7 @@ class JobParam(args: Array[String]) {
     }
     val confContent = Source.fromFile(jobConfPath, "utf-8").getLines().mkString("\n")
     jobConf = JSON.parseObject(confContent, classOf[JobConf])
+    jobConf.assignParams()
   }
 
   parse()

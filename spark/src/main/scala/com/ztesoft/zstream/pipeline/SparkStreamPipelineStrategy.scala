@@ -23,11 +23,16 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
     * 使用checkpoint时，流计算业务必须包含在创建StreamingContext函数中
     */
   def createSSC(): StreamingContext = {
-    val master = params.getOrElse("master", "local[4]").toString
+    val master = params.getOrElse("spark.master", "local[4]").toString
     val appName = jobConf.getName
-    val duration = params.getOrElse("duration", "5").toString.toInt
+    val duration = params.getOrElse("spark.duration", "5").toString.toInt
 
     val sparkConf = new SparkConf().setMaster(master).setAppName(appName)
+    //设置spark参数
+    params.filter(t => t._1.startsWith("spark.") && !t._1.endsWith("spark.master") && !t._1.endsWith("spark.duration"))
+      .foreach(t => {
+        sparkConf.set(t._1, t._2.toString)
+      })
     val ssc = new StreamingContext(sparkConf, Seconds(duration))
     ssc.sparkContext.getConf
 

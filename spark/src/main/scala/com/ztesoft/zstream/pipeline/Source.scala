@@ -31,7 +31,10 @@ class Source extends PipelineProcessor {
     val cfg = conf.map(s => (s._1.toString, s._2.toString))
     val subType = cfg("subType")
     //json或分隔符
-    val format = cfg.getOrElse("format", ",")
+    var format = cfg.getOrElse("format", ",")
+    if(format.equals("|")) {
+      format = "\\|"
+    }
     val outputTableName = cfg("outputTableName")
     val colDef = jobConf.getTableDef.get(outputTableName)
     val defaultExtClass = "com.ztesoft.zstream.DefaultSourceExtProcessor"

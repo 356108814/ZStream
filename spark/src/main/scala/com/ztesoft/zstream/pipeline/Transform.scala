@@ -1,14 +1,10 @@
 package com.ztesoft.zstream.pipeline
 
-import java.io.FileInputStream
-
 import com.ztesoft.zstream.{GlobalCache, SparkUtil}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.dstream.DStream
-import org.python.core.PyString
-import org.python.util.PythonInterpreter
 
 import scala.collection.JavaConversions._
 
@@ -48,16 +44,6 @@ class Transform extends PipelineProcessor {
 
     val sqlDStream = windowDStream.transform(rowRDD => {
       val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
-      //TODO 测试python自定义函数
-      sparkSession.udf.register("uuid", (input: String) => {
-        val interpreter = new PythonInterpreter()
-        val py_file = new FileInputStream("/Users/apple/debugData/udf.py")
-        interpreter.execfile(py_file)
-        py_file.close()
-        val func = interpreter.get("uuidS")
-        val result = func.__call__(new PyString(input))
-        result.toString
-      })
       //注册自定义函数
       if(jobConf.getUdf != null) {
         SparkUtil.registerUDF(sparkSession, jobConf.getUdf)

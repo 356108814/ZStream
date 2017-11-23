@@ -17,10 +17,27 @@ public class JobConf implements Serializable {
     private String id;
     private String name;
     private String desc;
+    /**
+     * 引擎类型，spark或flink
+     */
     private String engineType;
+    /**
+     * 处理器配置，类型包括source、dim、transform、action
+     */
     private List<Map<String, Object>> processors;
+    /**
+     * 参数，包含用户自定义参数、spark参数、系统参数等
+     * 用${name}作占位符
+     * spark参数以spark开头，如spark.master
+     */
     private Map<String, Object> params;
+    /**
+     * 输出表定义
+     */
     private Map<String, String> tableDef;
+    /**
+     * 自定义函数配置
+     */
     private Map<String, String> udf;
 
     public String getId() {
@@ -77,6 +94,27 @@ public class JobConf implements Serializable {
 
     public void setTableDef(Map<String, String> tableDef) {
         this.tableDef = tableDef;
+    }
+
+    /**
+     * 赋值参数，替换参数占位符为实际值
+     */
+    public void assignParams() {
+        int i = 0;
+        for (Map<String, Object> p : this.processors) {
+            for (Map.Entry<String, Object> entry : p.entrySet()) {
+                String name = entry.getKey();
+                String value = entry.getValue().toString();
+                if (value.startsWith("${")) {
+                    String key = value.replace("${", "").replace("}", "");
+                    if (this.params.containsKey(key)) {
+                        value = this.params.get(key).toString();
+                        this.processors.get(i).put(name, value);
+                    }
+                }
+            }
+            i++;
+        }
     }
 
     /**

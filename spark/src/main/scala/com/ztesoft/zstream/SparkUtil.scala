@@ -1,5 +1,6 @@
 package com.ztesoft.zstream
 
+import java.io.FileInputStream
 import java.lang.reflect.Method
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -9,6 +10,8 @@ import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.spark.sql.api.java._
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types._
+import org.python.core.PyString
+import org.python.util.PythonInterpreter
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
@@ -266,6 +269,26 @@ object SparkUtil {
         case 8 =>
           sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF8[_, _, _, _, _, _, _, _, _]], rtnType)
       }
+    })
+  }
+
+  /**
+    * 注册python实现的自定义函数
+    *
+    * @param sparkSession session
+    * @param funcName     函数名称
+    * @param pyFilePath   py文件路径
+    */
+  def registerPythonUdf(sparkSession: SparkSession, funcName: String, pyFilePath: String): Unit = {
+    //TODO 测试python自定义函数
+    sparkSession.udf.register("uuid", (input: String) => {
+      val interpreter = new PythonInterpreter()
+      val py_file = new FileInputStream("/Users/apple/debugData/udf.py")
+      interpreter.execfile(py_file)
+      py_file.close()
+      val func = interpreter.get("uuidS")
+      val result = func.__call__(new PyString(input))
+      result.toString
     })
   }
 
