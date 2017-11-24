@@ -38,7 +38,7 @@ class Source extends PipelineProcessor {
     val outputTableName = cfg("outputTableName")
     val colDef = jobConf.getTableDef.get(outputTableName)
     val defaultExtClass = "com.ztesoft.zstream.DefaultSourceExtProcessor"
-    var extClass = cfg.getOrElse("extClass", defaultExtClass)
+    var extClass = cfg.getOrElse("extClass", "")
     if(extClass.isEmpty) {
       extClass = defaultExtClass
       Logging.logWarning(s"数据源${outputTableName}使用默认的扩展处理器$defaultExtClass")
