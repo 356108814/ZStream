@@ -49,11 +49,12 @@ class Action extends PipelineProcessor {
 
         case "debug" =>
           //仅用于调试
-          val id = jobConf.getId
+          val id = cfg("id")
+          val jobId = jobConf.getId
           val url = cfg("url")
           val dbtable = cfg("dbtable")
           val debugAction = new DebugAction()
-          debugAction.init(id, inputTableName, url, dbtable)
+          debugAction.init(id, jobId, inputTableName, url, dbtable)
           debugAction.process(df)
 
         case "file" =>
