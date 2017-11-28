@@ -70,7 +70,7 @@ object SparkUtil {
   def arrayToRow(array: Array[String], schema: StructType): Row = {
     val values = new java.util.ArrayList[Any]()
     val structFields = schema.toArray
-    for (i <- array.indices) {
+    for (i <- schema.indices) {
       val v = array(i).toString
       val t = structFields.apply(i).dataType
       values.add(getValue(v, t))
@@ -228,9 +228,24 @@ object SparkUtil {
     * @param udfs         函数，键为函数名，值为类名
     */
   def registerUDF(sparkSession: SparkSession, udfs: java.util.Map[String, String]): Unit = {
-    //TODO 注册默认自定义函数
-    udfs.keys.foreach(name => {
-      val className = udfs.get(name)
+    var udfMap: java.util.Map[String, String] = null
+    if (udfs == null) {
+      udfMap = new util.HashMap[String, String]()
+    } else {
+      udfMap = udfs
+    }
+    //默认自定义函数
+    val defaultPackage = "com.ztesoft.zstream.udf."
+    val defaultUdfs = Map[String, String](
+      "accLong" -> "AccumulateLongUdf",
+      "accDouble" -> "AccumulateDoubleUdf"
+    )
+    for (t <- defaultUdfs) {
+      udfMap.put(t._1, defaultPackage + t._2)
+    }
+
+    udfMap.keys.foreach(name => {
+      val className = udfMap.get(name)
       val clazz = Class.forName(className)
       val methods = clazz.getMethods
       val callMethod: Method = methods.filter(

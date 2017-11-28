@@ -11,7 +11,7 @@ import scala.io.Source
   *
   * @author Yuri
   */
-class FileReceiver(filePath: String) extends Receiver[String](StorageLevel.MEMORY_AND_DISK_2) {
+class FileReceiver(filePath: String, encoding: String = "utf-8") extends Receiver[String](StorageLevel.MEMORY_AND_DISK_2) {
 
   override def onStart(): Unit = {
     new Thread("File Receiver") {
@@ -31,16 +31,15 @@ class FileReceiver(filePath: String) extends Receiver[String](StorageLevel.MEMOR
       val schema = "file://"
       if (filePath.startsWith(schema)) {
         val realFilePath = filePath.replace(schema, "")
-        lines = Source.fromFile(realFilePath, "utf-8").getLines()
+        lines = Source.fromFile(realFilePath, encoding).getLines()
       } else {
         lines = HdfsUtil.readFile(filePath).split("\n").toIterator
       }
-      while (!isStopped) {
+      while (!isStopped && lines.nonEmpty) {
         for (line <- lines) {
           store(line)
         }
       }
-      restart("Trying to receive again")
     } catch {
       case t: Throwable =>
         restart("Error receiving data", t)

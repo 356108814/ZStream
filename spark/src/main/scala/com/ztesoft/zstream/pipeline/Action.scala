@@ -1,18 +1,15 @@
 package com.ztesoft.zstream.pipeline
 
-import java.io.FileWriter
 import java.util.Properties
 
-import com.alibaba.fastjson.JSONObject
-import com.ztesoft.zstream.action.{DebugAction, RedisAction}
 import com.ztesoft.zstream._
+import com.ztesoft.zstream.action.{DebugAction, FileAction, RedisAction}
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Put}
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * 输出动作
@@ -58,35 +55,8 @@ class Action extends PipelineProcessor {
           debugAction.process(df)
 
         case "file" =>
-          val path = cfg("path")
-          val append = cfg.getOrElse("append", "true").toBoolean
-          val format = cfg.getOrDefault("format", ",")
-          val content = new ArrayBuffer[String]()
-          for (row <- df.collect()) {
-            val line = {
-              format match {
-                case "json" =>
-                  val jo = new JSONObject()
-                  var i = 0
-                  for (s <- row.schema) {
-                    jo.put(s.name, row.get(i))
-                    i += 1
-                  }
-                  jo.toJSONString
-                case _ => row.mkString(format)
-              }
-            }
-            content += line
-          }
-          val schema = "file://"
-          if (path.startsWith(schema)) {
-            val realFilePath = path.replace(schema, "")
-            val out = new FileWriter(realFilePath, append)
-            out.write(content.mkString("\n"))
-            out.close()
-          } else {
-            HdfsUtil.append(path, content.mkString("\n"))
-          }
+          val fileAction = new FileAction()
+          fileAction.process(cfg, df)
 
         case "directory" =>
           val path = cfg("path")

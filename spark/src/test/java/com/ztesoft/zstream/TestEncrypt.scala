@@ -1,4 +1,4 @@
-package com.ztesoft.zstream.udf
+package com.ztesoft.zstream
 
 import org.apache.spark.sql.api.java._
 

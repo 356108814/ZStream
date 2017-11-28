@@ -1,11 +1,14 @@
 package com.ztesoft.zstream;
 
+import java.util.Properties;
+
 /**
  * 配置
  *
  * @author Yuri
  */
 public class Config {
+    public static Properties properties;
     public static String checkpoint;
     public static boolean isUseKerberos = false;
     public static boolean isDebug = false;
@@ -16,6 +19,10 @@ public class Config {
         if (filename == null || filename.isEmpty()) {
             filename = "config.properties";
         }
-        PropertyUtil.setConfigFromFile(Config.class, filename);
+        properties = PropertyUtil.getProperties(filename);
+        checkpoint = properties.getProperty("checkpoint");
+        isUseKerberos = Boolean.parseBoolean(properties.getProperty("isUseKerberos"));
+        isDebug = Boolean.parseBoolean(properties.getProperty("isDebug"));
+//        PropertyUtil.setConfigFromFile(Config.class, filename);
     }
 }

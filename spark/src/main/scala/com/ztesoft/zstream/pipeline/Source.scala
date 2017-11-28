@@ -53,7 +53,8 @@ class Source extends PipelineProcessor {
       case "file" =>
         //文件模式，默认hdfs格式，本地文件必须以file://开头
         val filePath = cfg("path")
-        ssc.receiverStream(new FileReceiver(filePath))
+        val encoding = cfg.getOrElse("encoding", "utf-8")
+        ssc.receiverStream(new FileReceiver(filePath, encoding))
 
       case "kafka" =>
         val Array(zkQuorum, group, topics, numThreads) = Array(cfg("zkQuorum"), cfg("group"), cfg("topics"), cfg.getOrElse("numThreads", "1"))
@@ -82,7 +83,7 @@ class Source extends PipelineProcessor {
       case "json" =>
         etlDStream.map(line => SparkUtil.jsonObjectToRow(JSON.parseObject(line), schema))
       case _ =>
-        etlDStream.map(_.split(format)).map(a => SparkUtil.arrayToRow(a, schema))
+        etlDStream.map(_.split(format, -1)).map(a => SparkUtil.arrayToRow(a, schema))
     }
 
     //数据源需要创建对应的表，这样后续就可以直接用了

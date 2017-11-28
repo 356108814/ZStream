@@ -1,10 +1,12 @@
 package com.ztesoft.zstream.pipeline
 
 import com.ztesoft.zstream.{GlobalCache, SparkUtil}
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.dstream.DStream
+import redis.clients.jedis.JedisPool
 
 import scala.collection.JavaConversions._
 
@@ -45,9 +47,7 @@ class Transform extends PipelineProcessor {
     val sqlDStream = windowDStream.transform(rowRDD => {
       val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
       //注册自定义函数
-      if(jobConf.getUdf != null) {
-        SparkUtil.registerUDF(sparkSession, jobConf.getUdf)
-      }
+      SparkUtil.registerUDF(sparkSession, jobConf.getUdf)
 
       //注册维度表
       val dimProcessors = jobConf.getDimProcessors
@@ -120,12 +120,18 @@ class Transform extends PipelineProcessor {
             if (newValues.nonEmpty) newValues.head else state.get
           }
           val row = {
-            accValueType match {
-              case IntegerType => Row(keyRow.get(0), result.toInt)
-              case FloatType => Row(keyRow.get(0), result.toFloat)
-              case DoubleType => Row(keyRow.get(0), result.toDouble)
-              case _ => Row(keyRow.get(0), result.toLong)
+            val values = new java.util.ArrayList[Any]()
+            for (v <- keyRow.toSeq) {
+              values.add(v)
             }
+            //用最新累加值替换最后的统计字段
+            if(accValueType.isInstanceOf[DoubleType]) {
+              values.set(values.size() - 1, result.toDouble)
+            } else {
+              values.set(values.size() - 1, result.toLong)
+            }
+
+            Row.fromSeq(values.toArray)
           }
           Some(row)
         }
@@ -133,9 +139,9 @@ class Transform extends PipelineProcessor {
         //第一个字段为键，最后一个字段为累加值
         val stateDStream = sqlDStream.map(row => (row(0), row)).updateStateByKey[Row](accFunc)
         //checkpoint保存
-        val interval = jobConf.getParams.getOrDefault("checkpointInterval", "60").toString.toInt
-        stateDStream.cache()
-        stateDStream.checkpoint(Seconds(interval))
+        //        val interval = jobConf.getParams.getOrDefault("checkpointInterval", "60").toString.toInt
+        //        stateDStream.cache()
+        //        stateDStream.checkpoint(Seconds(interval))
 
         val resultDStream = stateDStream.map(t => t._2).transform(rowRDD => {
           val sparkSession = SparkSession.builder().config(rowRDD.sparkContext.getConf).getOrCreate()
@@ -147,7 +153,6 @@ class Transform extends PipelineProcessor {
         })
 
         resultDStream
-
       } else {
         sqlDStream
       }

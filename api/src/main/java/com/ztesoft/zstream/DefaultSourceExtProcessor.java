@@ -58,11 +58,11 @@ public class DefaultSourceExtProcessor implements SourceExtProcessor {
 
         } else {
             String[] array = line.split(format, -1);
-            if (array.length != columnDefs.size()) {
+            if (array.length < columnDefs.size()) {
                 return false;
             }
             ColumnDef columnDef;
-            for (int i = 0; i < array.length; i++) {
+            for (int i = 0; i < columnDefs.size(); i++) {
                 columnDef = columnDefs.get(i);
                 if (!TypeValidator.isValid(array[i], columnDef.getType())) {
                     return false;
