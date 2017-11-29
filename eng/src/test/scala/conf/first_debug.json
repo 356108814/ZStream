@@ -7,7 +7,7 @@
     {
       "type": "source",
       "subType": "file",
-      "path": "J:/spark/source/u.txt",
+      "path": "file://J:/spark/source/u.txt",
       "format": ",",
       "outputTableName": "user"
     },
@@ -23,6 +23,7 @@
     {
       "type": "action",
       "subType": "debug",
+      "id": "888_aaaa",
       "inputTableName": "adult",
       "url": "jdbc:mysql://10.45.47.66:3306/?user=root&password=root&useUnicode=true&amp;characterEncoding=UTF-8",
       "dbtable": "z_realt_eng_dev.zs_task_debug_result"

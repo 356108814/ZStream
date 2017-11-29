@@ -7,8 +7,8 @@
     {
       "type": "source",
       "subType": "socket",
-      "host": "${user.host}",
-      "port": 9999,
+      "host": "10.45.47.66",
+      "port": 9998,
       "format": ",",
       "outputTableName": "user"
     },
@@ -16,24 +16,24 @@
     {
       "type": "transform",
       "subType": "sql",
-      "sql": "select id, count(id) from user group by id",
+      "sql": "select id, name from user",
       "inputTableName": "user",
-      "outputTableName": "user_count"
+      "outputTableName": "adult"
     },
 
     {
       "type": "action",
-      "subType": "redis",
-      "host": "localhost",
+      "subType": "file",
+      "path": "file://J:/spark/result/adult.txt",
       "key": "userCount",
-      "inputTableName": "user_count"
+      "inputTableName": "adult"
     }
 
   ],
 
   "tableDef": {
     "user": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]",
-    "user_count": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"count\", \"type\": \"long\"}]"
+    "adult": "[{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"name\", \"type\": \"string\"}]"
   },
 
   "params": {

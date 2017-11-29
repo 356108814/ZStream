@@ -7,6 +7,7 @@ import com.ztesoft.zstream.HdfsUtil
 import org.apache.spark.sql._
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * 保存至文件
@@ -18,7 +19,8 @@ class FileAction {
     val path = cfg("path")
     val append = cfg.getOrElse("append", "true").toBoolean
     val format = cfg.getOrElse("format", ",")
-    var fileWriter: FileWriter = null
+    //先缓存所有文件以及对应需要写入的数据
+    val fileMap = new collection.mutable.HashMap[String, ArrayBuffer[String]]()
     for (row <- df.collect()) {
       var actualPath = getActualPath(path, row)
       val line = {
@@ -37,13 +39,23 @@ class FileAction {
       val schema = "file://"
       if (actualPath.startsWith(schema)) {
         actualPath = actualPath.replace(schema, "")
-        fileWriter = new FileWriter(actualPath, append)
-        fileWriter.write(line + "\n")
+        val content = {
+          if (fileMap.contains(actualPath)) {
+            fileMap.get(actualPath).get
+          } else {
+            val c = new ArrayBuffer[String]()
+            fileMap.put(actualPath, c)
+            c
+          }
+        }
+        content += line
       } else {
         HdfsUtil.append(actualPath, line + "\n")
       }
     }
-    if (fileWriter != null) {
+    for (t <- fileMap) {
+      val fileWriter = new FileWriter(t._1, append)
+      fileWriter.write(t._2.mkString("\n"))
       fileWriter.close()
     }
   }
@@ -57,7 +69,7 @@ class FileAction {
     */
   private def getActualPath(path: String, row: Row): String = {
     var actualPath = path
-    //提前参数${xxx}
+    //提取参数${xxx}
     val pattern = "\\$\\{(\\s*\\w+\\.?\\w+\\s*)}".r
     val matchParams = pattern findAllMatchIn path
     for (m <- matchParams) {

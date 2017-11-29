@@ -10,9 +10,8 @@ import org.apache.spark.sql._
   */
 class RedisAction(host: String, port: Int, dbIndex: Int, key: String = "", timeout: Int = 30000) extends Serializable {
   def process(df: DataFrame): Unit = {
-//    //必须加lazy延迟初始化，否则有序列化问题
-//    lazy val pool = new JedisPool(new GenericObjectPoolConfig(), host, port, timeout)
-    val redis = RedisUtil.getJedis
+    lazy val pool = RedisUtil.getNewPool(host, port, timeout)
+    val redis = pool.getResource
 
     df.foreachPartition(iteratorRow => {
       iteratorRow.foreach(row => {
@@ -25,7 +24,7 @@ class RedisAction(host: String, port: Int, dbIndex: Int, key: String = "", timeo
           redis.set(k, v)
         }
       })
-      redis.close()
     })
+    redis.close()
   }
 }
