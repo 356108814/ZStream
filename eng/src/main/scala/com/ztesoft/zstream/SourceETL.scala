@@ -2,6 +2,8 @@ package com.ztesoft.zstream
 
 import java.util
 
+import org.apache.hadoop.fs.Path
+
 /**
   * 数据源ETL
   *
@@ -9,9 +11,17 @@ import java.util
   */
 object SourceETL {
 
-  def filterFile(filePath: String, className: String = "com.ztesoft.zstream.DefaultSourceExtProcessor"): Boolean = {
+  def filterFile(path: Path, regex: String, className: String = "com.ztesoft.zstream.DefaultSourceExtProcessor"): Boolean = {
+    //文件完整路径，如：/tmp/test.log
+    val filePath = path.toUri.getPath
     val sourceExtProcessor = Class.forName(className).newInstance().asInstanceOf[SourceExtProcessor]
-    sourceExtProcessor.filterFile(filePath)
+    val first = sourceExtProcessor.filterFile(filePath)
+    var second = true
+    //必须满足正则表达式
+    if (regex != null && !regex.isEmpty) {
+      second = filePath.matches(regex)
+    }
+    first && second
   }
 
   def filterLine(line: String, format: String, columnDefs: util.List[ColumnDef], className: String = "com.ztesoft.zstream.DefaultSourceExtProcessor"): Boolean = {

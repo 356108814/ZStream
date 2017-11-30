@@ -63,9 +63,10 @@ class Source extends PipelineProcessor {
 
       case "directory" =>
         val path = cfg.getOrElse("path", "")
+        val regex = cfg.getOrElse("regex", "")
         val fileFilterFunc = new Function[Path, Boolean] {
           def apply(path: Path): Boolean = {
-            SourceETL.filterFile(path.getName, extClass)
+            SourceETL.filterFile(path, regex, extClass)
           }
         }
         ssc.fileStream[LongWritable, Text, TextInputFormat](path, fileFilterFunc, newFilesOnly = true).map(_._2.toString)
@@ -76,8 +77,8 @@ class Source extends PipelineProcessor {
     }
 
     //经etl后的dstream
-    val etlDStream = dstream.filter(line => SourceETL.filterLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
-      .map(line => SourceETL.transformLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
+    val etlDStream = dstream.map(line => SourceETL.transformLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
+      .filter(line => SourceETL.filterLine(line, format, SparkUtil.createColumnDefList(colDef), extClass))
     val schema = SparkUtil.createSchema(colDef)
     val ds = format match {
       case "json" =>
