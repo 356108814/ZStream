@@ -1,5 +1,8 @@
 package com.ztesoft.zstream;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.Properties;
 
 /**
@@ -8,6 +11,8 @@ import java.util.Properties;
  * @author Yuri
  */
 public class Config {
+    private static final Log LOG = LogFactory.getLog(Config.class);
+
     public static Properties properties;
     public static String checkpoint;
     public static boolean isUseKerberos = false;
@@ -23,6 +28,7 @@ public class Config {
         checkpoint = properties.getProperty("checkpoint");
         isUseKerberos = Boolean.parseBoolean(properties.getProperty("isUseKerberos"));
         isDebug = Boolean.parseBoolean(properties.getProperty("isDebug"));
+        LOG.info(String.format("%s配置内容如下：\n%s", filename, properties));
 //        PropertyUtil.setConfigFromFile(Config.class, filename);
     }
 }

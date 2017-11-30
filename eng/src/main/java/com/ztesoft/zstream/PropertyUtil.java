@@ -32,9 +32,10 @@ public class PropertyUtil {
         InputStream inputStream;
         try {
             inputStream = new FileInputStream(filename);
+            LOG.info("加载外部配置" + filename);
         } catch (IOException e) {
-            LOG.warn("当前路径配置文件不存在，转向从jar包中加载: " + e.getMessage());
             inputStream = PropertyUtil.class.getClassLoader().getResourceAsStream(filename);
+            LOG.info("加载jar包内的配置" + filename);
         }
         if (inputStream != null) {
             try {

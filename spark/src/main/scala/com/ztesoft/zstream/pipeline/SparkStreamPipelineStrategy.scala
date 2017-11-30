@@ -53,7 +53,6 @@ class SparkStreamPipelineStrategy(jobConf: JobConf) extends StreamStrategy {
   }
 
   override def start(): Unit = {
-    Config.load("config.properties")
     KerberosUtil.loginCluster(Config.isUseKerberos, Config.isDebug)
     val checkpoint = Config.checkpoint + "/" + jobConf.getId
     val ssc = {

@@ -243,6 +243,12 @@ object SparkUtil {
     for (t <- defaultUdfs) {
       udfMap.put(t._1, defaultPackage + t._2)
     }
+    //自定义函数构造函数参数
+    val defaultRedisConf = Map("host" -> Config.properties.getProperty("redis.host"), "port" -> Config.properties.getProperty("redis.port"))
+    val defaultUdfParam = Map[String, Map[String, Any]](
+      "accLong" -> defaultRedisConf,
+      "accDouble" -> defaultRedisConf
+    )
 
     udfMap.keys.foreach(name => {
       val className = udfMap.get(name)
@@ -266,23 +272,32 @@ object SparkUtil {
         "string" -> StringType)
       val rtnType = typeMap(rtnTypeName)
 
+      val instance = {
+        if(defaultUdfParam.contains(name)) {
+          val constructor = clazz.getConstructor(classOf[Map[String, Any]])
+          constructor.newInstance(defaultUdfParam.get(name).get)
+        } else {
+          clazz.newInstance()
+        }
+      }
+
       parameterCount match {
         case 1 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF1[_, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF1[_, _]], rtnType)
         case 2 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF2[_, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF2[_, _, _]], rtnType)
         case 3 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF3[_, _, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF3[_, _, _, _]], rtnType)
         case 4 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF4[_, _, _, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF4[_, _, _, _, _]], rtnType)
         case 5 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF5[_, _, _, _, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF5[_, _, _, _, _, _]], rtnType)
         case 6 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF6[_, _, _, _, _, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF6[_, _, _, _, _, _, _]], rtnType)
         case 7 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF7[_, _, _, _, _, _, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF7[_, _, _, _, _, _, _, _]], rtnType)
         case 8 =>
-          sparkSession.udf.register(name, clazz.newInstance().asInstanceOf[UDF8[_, _, _, _, _, _, _, _, _]], rtnType)
+          sparkSession.udf.register(name, instance.asInstanceOf[UDF8[_, _, _, _, _, _, _, _, _]], rtnType)
       }
     })
   }

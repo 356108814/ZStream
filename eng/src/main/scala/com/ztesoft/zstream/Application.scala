@@ -14,6 +14,7 @@ object Application {
     val param = new JobParam(args)
     val jobConfValidator = new JobConfValidator(param.jobConf)
     jobConfValidator.validate()
+    Config.load("config.properties")
     val jobContext = new JobContext(param.jobConf)
     jobContext.start()
   }
